@@ -3,8 +3,10 @@ use sdl2::video::Window;
 use crate::Controller;
 use std::convert::TryInto;
 use sdl2::rect::Point;
+use sdl2::rect::Rect;
+use sdl2::render::Texture;
 
-pub struct Tetris {
+pub struct Tetris <'a>{
     pub canvas: Canvas<Window>,
     pub board: Board, // contient le plateau de jeu
     w: i32,
@@ -12,10 +14,11 @@ pub struct Tetris {
     x: i32,
     y: i32,
     size_box: i32,
+    pub main_texture: Texture<'a>,
 }
 
-impl Tetris{
-    pub fn new(canvas: Canvas<Window>, w: i32, h: i32, x: i32, y: i32) -> Tetris{
+impl Tetris<'_>{
+    pub fn new(canvas: Canvas<Window>, texture: Texture, w: i32, h: i32, x: i32, y: i32) -> Tetris{
 	Tetris{
 	    canvas: canvas,
 	    w:300,
@@ -24,11 +27,33 @@ impl Tetris{
 	    y:200,
 	    board: Board::new(),
 	    size_box: h/20,
+	    main_texture: texture,
 	}
+    }
+    pub fn draw <T: crate::PieceGen>(&mut self, old_piece: &T, new_piece: &T){
+	self.canvas.with_texture_canvas(&mut self.main_texture, |texture_p| {
+	    texture_p.set_draw_color(sdl2::pixels::Color::RGBA(0, 0, 0, 255));
+	    for case in old_piece.get_points(){
+		let x  = case.x() as i32 * 30;
+		let y = case.y() as i32 * 30;
+		texture_p.fill_rect(Rect::from((x, y, 28, 28))).expect("Rectange pas dessinable");
+	    }
+	    
+	    texture_p.set_draw_color(sdl2::pixels::Color::RGBA(63, 63, 63, 255));
+	    for case in new_piece.get_points()
+	    {
+		let x  = case.x() as i32 * 30;
+		let y = case.y() as i32 * 30;
+		texture_p.fill_rect(Rect::from((x, y, 28, 28))).expect("Rectange pas dessinable");
+	    }
+	    texture_p.set_draw_color(sdl2::pixels::Color::RGBA(0, 0, 0, 255));
+	}
+	);
+	//self.canvas.copy(&self.main_texture, None, None).expect("Cant copy");
     }
 }
 
-impl Controller for Tetris{}
+impl <'a> Controller for Tetris <'a>{}
 
 
 //notre jeu sur lequel un joueur peut évoluer

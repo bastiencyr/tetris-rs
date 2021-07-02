@@ -15,11 +15,8 @@ pub trait PieceGen{
 
     //décale la pièce vers la droite sans vérification
     fn translate_right(&mut self) -> Self;
-    fn translate_left(&mut self);
+    fn translate_left(&mut self) -> Self;
     fn translate_down(&mut self) -> Self;
-    // chaque pièce doit implémenter draw. Draw permet de mettre à jour la vue
-    //canvas.present n'est pas appelé
-    fn draw(&self, canvas: &mut Canvas<Window>, old_pos: &Self);
     //retourne les positions de chaque carré de la pièce
     fn get_points(&self) -> [Point;4];
 }
@@ -69,17 +66,19 @@ impl PieceGen for Barre{
     fn new()-> Self{
 	// data piece n'a pas à être mutable -> ne pas confondre le pointeur et les valeurs pointées. 
 	crate::Barre{
-	    data:[Point::from((0,0)),Point::from((0,1)),Point::from((0,2)),Point::from((0,3))],
+	    data:[Point::from((0,-2)),Point::from((0,-1)),Point::from((0,0)),Point::from((0,1))],
 	    count: 0,
 	}
     }
     
-    fn translate_left(&mut self){
+    fn translate_left(&mut self)->Self{
+	let copy = self.clone();
 	//pour linstant on impose pas de conditions
 	for case in &mut self.data{
 	    // on met a jour les données
 	    case.x -= 1;
 	}
+	copy
     }
 
     fn translate_down(&mut self) -> Barre{
@@ -90,24 +89,5 @@ impl PieceGen for Barre{
 	    case.y += 1;	
 	}
 	copy
-    }
-    
-    fn draw(&self, canvas : &mut Canvas<Window>, barre: &Barre){
-
-	//on efface lanncienne pièce
-	canvas.set_draw_color(sdl2::pixels::Color::RGBA(0, 0, 0, 255));
-	for case in &barre.data{
-	    let x  = case.x() as i32 * 30;
-	    let y = case.y() as i32 * 30;
-	    canvas.fill_rect(Rect::from((x, y, 28, 28))).expect("Rectange pas dessinable");
-	}
-	
-	canvas.set_draw_color(sdl2::pixels::Color::RGBA(63, 63, 63, 255));
-	for case in &self.data{
-	    let x  = case.x() as i32 * 30;
-	    let y = case.y() as i32 * 30;
-	    canvas.fill_rect(Rect::from((x, y, 28, 28))).expect("Rectange pas dessinable");
-	}
-	canvas.set_draw_color(sdl2::pixels::Color::RGBA(0, 0, 0, 255));
     }
 }

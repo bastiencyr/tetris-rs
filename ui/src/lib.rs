@@ -15,23 +15,68 @@ pub mod background {
     }
 
     impl Background<'_>{
-	pub fn new(texture_creator: &TextureCreator<WindowContext>) -> Background{
+	
+	pub fn new<'a>(texture_creator: &'a TextureCreator<WindowContext>) -> Background<'a>{
 	    // let (x,y) = texture_creator.size();
 	    let texture = texture_creator
 		.create_texture_target(texture_creator.default_pixel_format(), 300, 600)
 		.unwrap();
-	    Background{
+	    let mut back = Background{
 		background_texture: texture,
 		color: [0,0,63,255], // la couleur de fond + gamma
-	    }
+	    };
+	    //back.show2(canvas);
+	    back
+		
 	}
 	
-	// la texture doit êter crée à l'extérieur de la fonction
-	pub fn show(&mut self, canvas: &mut Canvas<Window>){
+	pub fn show2(&mut self, canvas: &mut Canvas<Window>){
 	    
 	    let (x, y) = canvas.window().size();
 	    //let color = self.color;
 	    let result = canvas.with_texture_canvas(&mut self.background_texture, |texture_canvas| {
+		//initialiser la couleur de fond ici avec color
+		
+		
+		texture_canvas.set_draw_color(sdl2::pixels::Color::RGBA(63, 63, 63, 255));
+		
+		let x  = x as i32;
+		let y = y as i32;
+		let size_carre = x/10;
+		
+		//verticale
+		for number in 1..10{
+		    let p1 = Point::from((number*size_carre, 0));
+		    let p2 = Point::from((number*size_carre, y));
+		    texture_canvas
+			.draw_line(p1, p2)
+			.expect("Failed to draw line");
+		}
+		
+		//horizontale
+		for number in 1..20{
+		    let p1 = Point::from((0,number*size_carre));
+		    let p2 = Point::from((x, number*size_carre));
+		    texture_canvas
+			.draw_line(p1,p2)
+			.expect("Failed to draw line");
+		}
+		
+		texture_canvas.set_draw_color(sdl2::pixels::Color::RGBA(0, 0, 0, 255));
+	    });    
+	}
+    
+
+	
+	
+	// This function only accept a texture from canvas to draw on it.
+	// I don't pass the whole tetris struct since this is a library...
+	// show only draw on the main_texture but not on the canvas
+	pub fn show(&mut self, canvas: &mut Canvas<Window>, main_texture: &mut Texture){
+	    
+	    let (x, y) = canvas.window().size();
+	    //let color = self.color;
+	    let result = canvas.with_texture_canvas(main_texture, |texture_canvas| {
 		//initialiser la couleur de fond ici avec color
 		
 		
@@ -60,10 +105,7 @@ pub mod background {
 		}
 		
 		texture_canvas.set_draw_color(sdl2::pixels::Color::RGBA(0, 0, 0, 255));
-	    });
-	    canvas.copy(&self.background_texture, None, None).expect("Cant copy");
-	    //canvas.present();
-	    
+	    });    
 	}
     }
 

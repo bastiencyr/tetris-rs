@@ -14,6 +14,7 @@ pub enum Action<'a, T, Board>
 where T: PieceGen {
     Right(T, &'a Board),
     Bottom(T, &'a Board),
+    Left(T, &'a Board),
 }
 
 
@@ -22,7 +23,6 @@ pub trait Controller{
     fn check<T: PieceGen + Iterator>(action : Action<T, Board>)->ResultController{
 	match action{
 	    Action::Right(piece, board)=>{
-		//let piece2 = piece.translate_right();
 		//box is a keyword in rust
 		for point in piece.get_points(){
 		    if point.x + 1 >= crate::WIDTH {
@@ -30,6 +30,16 @@ pub trait Controller{
 		    }
 		}
 	    },
+
+	    Action::Left(piece, board)=>{
+		//box is a keyword in rust
+		for point in piece.get_points(){
+		    if point.x - 1 < 0 {
+			return ResultController::RightBorder;
+		    }
+		}
+	    },
+	    
 	    Action::Bottom(piece, board) =>{
 		for point in piece.get_points(){
 		    if point.y + 1 >= crate::HEIGHT {
