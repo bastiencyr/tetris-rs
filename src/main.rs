@@ -78,9 +78,12 @@ fn main() -> Result<(), String> {
 		    match result_controller {
 			ResultController::Ok =>{
 			    let old_position: Barre = barre.translate_right(); // piece est mutable dans son scope mais si on lappelle dans une autre fonction, il faut le préciser.
+			    background.show(&mut tetris.canvas);
 			    barre.draw(&mut tetris.canvas, &old_position);
 			    //pour des raisons de perf, present n'est pas appelé dans draw
+			    //tetris.canvas.clear();
 			    tetris.canvas.present();
+			    tetris.canvas.clear();
 			}
 			_ => {}
 		    }
@@ -99,9 +102,12 @@ fn main() -> Result<(), String> {
 	    match result_controller {
 		ResultController::Ok =>{
 		    let old_position: Barre = barre.translate_down(); // piece est mutable dans son scope mais si on lappelle dans une autre fonction, il faut le préciser.
+		    background.show(&mut tetris.canvas);
 		    barre.draw(&mut tetris.canvas, &old_position);
 		    //pour des raisons de perf, present n'est pas appelé dans draw
 		    tetris.canvas.present();
+		    tetris.canvas.clear();
+		    //tetris.canvas.present();
 		}
 		_ => {}
 	    }
