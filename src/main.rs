@@ -9,10 +9,11 @@ use std::time::Duration;
 const HEIGHT: i32 = 20;
 const WIDTH: i32 = 10;
 
+
 mod piece_gen;
 mod controller;
 mod tetris;
-use crate::piece_gen::{Barre, PieceGen};
+use crate::piece_gen::{Piece, PieceModel};
 use crate::controller::{ResultController, Action, Controller};
 use crate::tetris::{Tetris, Board};
 
@@ -54,9 +55,9 @@ fn main() -> Result<(), String> {
     background.show(&mut tetris.canvas, &mut tetris.main_texture);
 
     //on déclare notre pièce
-    let mut  barre: Barre = piece_gen::Barre::new(); // on le déclare comme mutable
+    let mut  piece: Piece = piece_gen::Piece::new(); // on le déclare comme mutable
     //tetris.draw(&piece);
-    tetris.draw(&barre, &barre);
+    tetris.draw(&piece, &piece);
 
     //tetris.show()
     tetris.canvas.copy(&tetris.main_texture, None, None).expect("Cant copy");
@@ -77,13 +78,13 @@ fn main() -> Result<(), String> {
                 }
 		
 		Event::KeyUp { keycode: Some(Keycode::Right), ..} => {
-		    let act = Action::Right(barre.clone(), &tetris.board);
+		    let act = Action::Right(piece.clone(), &tetris.board);
 		    //act is moved. So, it cant be access after that.
 		    let result_controller = Tetris::check(act);
 		    match result_controller {
 			ResultController::Ok =>{
-			    let old_position: Barre = barre.translate_right(); // piece est mutable dans son scope mais si on lappelle dans une autre fonction, il faut le préciser.
-			    tetris.draw(&old_position, &barre);
+			    let old_position: Piece = piece.translate_right(); // piece est mutable dans son scope mais si on lappelle dans une autre fonction, il faut le préciser.
+			    tetris.draw(&old_position, &piece);
 			    background.show(&mut tetris.canvas, &mut tetris.main_texture);
 			    tetris.canvas.copy(&tetris.main_texture, None, None).expect("Cant copy");
 			    //background.show(&mut tetris.canvas);
@@ -95,14 +96,32 @@ fn main() -> Result<(), String> {
 		}
 		
 		Event::KeyUp { keycode: Some(Keycode::Left), ..} => {
-		    let act = Action::Left(barre.clone(), &tetris.board);
+		    let act = Action::Left(piece.clone(), &tetris.board);
 		    //act is moved. So, it cant be access after that.
 		    let result_controller = Tetris::check(act);
 		    match result_controller {
 			ResultController::Ok =>{
-			    let old_position: Barre = barre.translate_left(); // piece est mutable dans son scope mais si on lappelle dans une autre fonction, il faut le préciser.
+			    let old_position: Piece = piece.translate_left(); // piece est mutable dans son scope mais si on lappelle dans une autre fonction, il faut le préciser.
 			    //background.show(&mut tetris.ca;
-			    tetris.draw(&old_position, &barre);
+			    tetris.draw(&old_position, &piece);
+			    background.show(&mut tetris.canvas, &mut tetris.main_texture);
+			    //pour des raisons de perf, present n'est pas appelé dans draw
+			    tetris.canvas.copy(&tetris.main_texture, None, None).expect("Cant copy");
+			    tetris.canvas.present();
+			}
+			_ => {}
+		    }
+		}
+
+		Event::KeyUp { keycode: Some(Keycode::Down), ..} => {
+		    let act = Action::Bottom(piece.clone(), &tetris.board);
+		    //act is moved. So, it cant be access after that.
+		    let result_controller = Tetris::check(act);
+		    match result_controller {
+			ResultController::Ok =>{
+			    let old_position: Piece = piece.translate_down(); // piece est mutable dans son scope mais si on lappelle dans une autre fonction, il faut le préciser.
+			    //background.show(&mut tetris.ca;
+			    tetris.draw(&old_position, &piece);
 			    background.show(&mut tetris.canvas, &mut tetris.main_texture);
 			    //pour des raisons de perf, present n'est pas appelé dans draw
 			    tetris.canvas.copy(&tetris.main_texture, None, None).expect("Cant copy");
@@ -120,17 +139,22 @@ fn main() -> Result<(), String> {
 	if new_time-old_time >= 1000{
 	    old_time = new_time;
 
-	    let act = Action::Bottom(barre.clone(), &tetris.board);
+	    let act = Action::Bottom(piece.clone(), &tetris.board);
 	    let result_controller = Tetris::check(act);
 	    match result_controller {
 		ResultController::Ok =>{
-		    let old_position: Barre = barre.translate_down(); // piece est mutable dans son scope mais si on lappelle dans une autre fonction, il faut le préciser.
-		    tetris.draw(&old_position, &barre);
+		    let old_position: Piece = piece.translate_down(); // piece est mutable dans son scope mais si on lappelle dans une autre fonction, il faut le préciser.
+		    tetris.draw(&old_position, &piece);
 		    background.show(&mut tetris.canvas, &mut tetris.main_texture);
 		    tetris.canvas.copy(&tetris.main_texture, None, None).expect("Cant copy");
 		    
 		    //pour des raisons de perf, present n'est pas appelé dans draw
 		    tetris.canvas.present();
+		}
+		ResultController::BottomBorder | ResultController::CollisionPieceBottom => {
+		    tetris.update_board(&piece);
+		    piece.reinit();
+		    tetris.draw(&piece, &piece);
 		}
 		_ => {}
 	    }

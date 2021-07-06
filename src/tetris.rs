@@ -5,7 +5,11 @@ use std::convert::TryInto;
 use sdl2::rect::Point;
 use sdl2::rect::Rect;
 use sdl2::render::Texture;
+use crate::piece_gen;
 
+
+//Tetris is the "real" controller because it controls the view by calling draw
+//and the model by calling check (see implementation of Controller trait bellow
 pub struct Tetris <'a>{
     pub canvas: Canvas<Window>,
     pub board: Board, // contient le plateau de jeu
@@ -18,6 +22,11 @@ pub struct Tetris <'a>{
 }
 
 impl Tetris<'_>{
+
+    pub fn update_board<T:crate::PieceModel>(&mut self, piece: &T){
+	self.board.update_board(piece);
+    }
+    
     pub fn new(canvas: Canvas<Window>, texture: Texture, w: i32, h: i32, x: i32, y: i32) -> Tetris{
 	Tetris{
 	    canvas: canvas,
@@ -30,26 +39,8 @@ impl Tetris<'_>{
 	    main_texture: texture,
 	}
     }
-    pub fn draw <T: crate::PieceGen>(&mut self, old_piece: &T, new_piece: &T){
-	self.canvas.with_texture_canvas(&mut self.main_texture, |texture_p| {
-	    texture_p.set_draw_color(sdl2::pixels::Color::RGBA(0, 0, 0, 255));
-	    for case in old_piece.get_points(){
-		let x  = case.x() as i32 * 30;
-		let y = case.y() as i32 * 30;
-		texture_p.fill_rect(Rect::from((x, y, 28, 28))).expect("Rectange pas dessinable");
-	    }
-	    
-	    texture_p.set_draw_color(sdl2::pixels::Color::RGBA(63, 63, 63, 255));
-	    for case in new_piece.get_points()
-	    {
-		let x  = case.x() as i32 * 30;
-		let y = case.y() as i32 * 30;
-		texture_p.fill_rect(Rect::from((x, y, 28, 28))).expect("Rectange pas dessinable");
-	    }
-	    texture_p.set_draw_color(sdl2::pixels::Color::RGBA(0, 0, 0, 255));
-	}
-	);
-	//self.canvas.copy(&self.main_texture, None, None).expect("Cant copy");
+    pub fn draw <T: piece_gen::PieceView + piece_gen::PieceModel>(&mut self, old_piece: &T, new_piece: &T){
+	 new_piece.draw(old_piece, &mut self.canvas, &mut self.main_texture);
     }
 }
 
@@ -63,6 +54,8 @@ impl <'a> Controller for Tetris <'a>{}
 //ajouter de labstaction
 // un board est un vecteur de case. Chaque case étant une structure. 
 // board
+
+#[derive(Debug)]
 #[derive (Clone)]
 pub struct Board{
     grid: Vec<Box>, //grid is a  vector of boxes. Each box represents in the tetris.
@@ -73,15 +66,49 @@ impl Board{
     pub fn new()->Board{
 	let mut grid = Vec::new();
 	for i in 0..(crate::WIDTH*crate::HEIGHT).try_into().unwrap(){
-	    grid.push(Box::new(i/crate::WIDTH, i/crate::WIDTH))
+	    grid.push(Box::new(i%crate::WIDTH, i/crate::WIDTH))
 	}
 	Board{
 	    grid: grid,
 	    count: 0,
 	}
     }
+    
+    pub fn get_i_j(&self, i: i32, j:i32) -> &Box{
+	let index = j * crate::WIDTH + i;
+	&self.grid[index as usize]
+    }
+
+      pub fn get_mut_ij(&mut self, i: i32, j:i32) -> &mut Box{
+	let index = j * crate::WIDTH + i;
+	&mut self.grid[index as usize]
+    }
+    
+    pub fn update_board<T: crate::PieceModel>(&mut self, piece: &T){
+	for case in piece.get_points(){
+	    self.get_mut_ij(case.x, case.y).empty = false;
+	}
+	//println!("{:#?}", self.grid);
+	//self.print_mat();
+    }
+    
+    pub fn print_mat(&self){
+	for case in &self.grid{
+	    if case.newline(){
+		print!("\n");
+	    }
+	    if case.empty(){
+		print!("-{}-", 0);
+	    }
+	    else{
+		print!("-{}-", 1);
+	    }
+	}
+	print!("\n");
+    }
 }
 //a box represent a square object in the board
+#[derive(Debug)]
 #[derive (Clone)]
 pub struct Box{
     coord: Point,
@@ -94,6 +121,17 @@ impl Box{
 	    coord: Point::new(i,j),
 	    empty: true,
 	}
+    }
+
+    pub fn empty(&self) -> bool{
+	self.empty
+    }
+    
+    pub fn newline(&self) -> bool{
+	if self.coord.x == 0 {
+	    return true;
+	}
+	return false;
     }
 }
 
