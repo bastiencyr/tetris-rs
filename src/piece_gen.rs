@@ -25,13 +25,15 @@ pub trait PieceModel{
 }
 
 pub trait PieceView {
-    fn draw <T: PieceModel>(&self, old_piece: &T, canvas: &mut render::Canvas<Window>, texture: &mut render::Texture);
+    fn draw <T: PieceModel + std::fmt::Debug >(&self, old_piece: &T, canvas: &mut render::Canvas<Window>, texture: &mut render::Texture);
 }
 
 #[derive(Clone)] // cela nous permet dutiliser le trait de clone -> self.clone()
+#[derive(Debug)]
 pub struct Piece{
     data: [Point;4],
     count: i32,
+    //color: -> couleur du fond = (R,G,B)
 }
 
 //bancal -> à revoir
@@ -116,8 +118,8 @@ impl PieceModel for Piece{
 
 
 impl PieceView for Piece{
-    fn draw <T: PieceModel>(&self, old_piece: &T, canvas: &mut render::Canvas<Window>, texture: &mut render::Texture){
-
+    fn draw <T: PieceModel + std::fmt::Debug>(&self, old_piece: &T, canvas: &mut render::Canvas<Window>, texture: &mut render::Texture){
+	//println!("{:#?}::\n{:#?}", old_piece, *self);
 	canvas.with_texture_canvas(texture, |texture_p| {
 	    texture_p.set_draw_color(sdl2::pixels::Color::RGBA(0, 0, 0, 255));
 	    for case in old_piece.get_points(){

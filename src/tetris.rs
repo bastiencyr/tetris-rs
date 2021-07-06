@@ -1,49 +1,54 @@
 use sdl2::render::Canvas;
 use sdl2::video::Window;
-use crate::Controller;
 use std::convert::TryInto;
 use sdl2::rect::Point;
 use sdl2::rect::Rect;
 use sdl2::render::Texture;
 use crate::piece_gen;
+use crate::player;
+use crate::piece_gen::PieceModel;
+use crate::Piece;
 
+use crate::controller::{ResultController, Action, Controller};
 
 //Tetris is the "real" controller because it controls the view by calling draw
 //and the model by calling check (see implementation of Controller trait bellow
 pub struct Tetris <'a>{
     pub canvas: Canvas<Window>,
-    pub board: Board, // contient le plateau de jeu
-    w: i32,
-    h: i32,
-    x: i32,
-    y: i32,
-    size_box: i32,
     pub main_texture: Texture<'a>,
+    pub player: Vec<player::Player>,
 }
 
 impl Tetris<'_>{
 
     pub fn update_board<T:crate::PieceModel>(&mut self, piece: &T){
-	self.board.update_board(piece);
+	self.player[0].board.update_board(piece);
     }
     
-    pub fn new(canvas: Canvas<Window>, texture: Texture, w: i32, h: i32, x: i32, y: i32) -> Tetris{
+    pub fn new(canvas: Canvas<Window>, texture: Texture) -> Tetris{
 	Tetris{
+	    player: vec![player::Player::new()],
 	    canvas: canvas,
-	    w:300,
-	    h:600,
-	    x:100,
-	    y:200,
-	    board: Board::new(),
-	    size_box: h/20,
 	    main_texture: texture,
 	}
-    }
-    pub fn draw <T: piece_gen::PieceView + piece_gen::PieceModel>(&mut self, old_piece: &T, new_piece: &T){
-	 new_piece.draw(old_piece, &mut self.canvas, &mut self.main_texture);
+      }
+  
+    pub fn on_key_right(&mut self){
+	let act = Action::Right(self.player[0].piece.clone(), &self.player[0].board);
+		    //act is moved. So, it cant be access after that.
+	let result_controller = Tetris::check(act);
+	match result_controller {
+	    ResultController::Ok =>{
+		let old_position: Piece = self.player[0].piece.translate_right();
+		self.player[0].draw_piece(old_position, &mut self.canvas, &mut self.main_texture);
+		//background.show(&mut tetris.canvas, &mut tetris.main_texture);
+		self.canvas.copy(&self.main_texture, None, None).expect("Cant copy");
+		self.canvas.present();
+	    }
+	    _ => {}
+	}
     }
 }
-
 impl <'a> Controller for Tetris <'a>{}
 
 

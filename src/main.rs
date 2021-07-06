@@ -13,7 +13,8 @@ const WIDTH: i32 = 10;
 mod piece_gen;
 mod controller;
 mod tetris;
-use crate::piece_gen::{Piece, PieceModel};
+mod player;
+use crate::piece_gen::{Piece, PieceModel, PieceView};
 use crate::controller::{ResultController, Action, Controller};
 use crate::tetris::{Tetris, Board};
 
@@ -43,7 +44,7 @@ fn main() -> Result<(), String> {
     let main_texture = main_creator
 	.create_texture_target(main_creator.default_pixel_format(), 300, 600)
 	.unwrap();
-    let mut tetris = Tetris::new(canvas, main_texture, 200, 400, 100, 200);//canvas is moved , so it is not accessible anymore
+    let mut tetris = Tetris::new(canvas, main_texture);//canvas is moved , so it is not accessible anymore
     
     let mut timer = sdl_context.timer()?;
     let mut event_pump = sdl_context.event_pump()?;
@@ -55,11 +56,10 @@ fn main() -> Result<(), String> {
     background.show(&mut tetris.canvas, &mut tetris.main_texture);
 
     //on déclare notre pièce
-    let mut  piece: Piece = piece_gen::Piece::new(); // on le déclare comme mutable
+    //let mut  piece: Piece = piece_gen::Piece::new(); // on le déclare comme mutable
     //tetris.draw(&piece);
-    tetris.draw(&piece, &piece);
+    tetris.player[0].draw_piece(tetris.player[0].piece.clone(), &mut tetris.canvas, &mut tetris.main_texture);
 
-    //tetris.show()
     tetris.canvas.copy(&tetris.main_texture, None, None).expect("Cant copy");
     tetris.canvas.present();
     let mut running = true;
@@ -78,32 +78,19 @@ fn main() -> Result<(), String> {
                 }
 		
 		Event::KeyUp { keycode: Some(Keycode::Right), ..} => {
-		    let act = Action::Right(piece.clone(), &tetris.board);
-		    //act is moved. So, it cant be access after that.
-		    let result_controller = Tetris::check(act);
-		    match result_controller {
-			ResultController::Ok =>{
-			    let old_position: Piece = piece.translate_right(); // piece est mutable dans son scope mais si on lappelle dans une autre fonction, il faut le préciser.
-			    tetris.draw(&old_position, &piece);
-			    background.show(&mut tetris.canvas, &mut tetris.main_texture);
-			    tetris.canvas.copy(&tetris.main_texture, None, None).expect("Cant copy");
-			    //background.show(&mut tetris.canvas);
-			    //pour des raisons de perf, present n'est pas appelé dans draw
-			    tetris.canvas.present();
-			}
-			_ => {}
-		    }
+		    tetris.on_key_right()
 		}
 		
 		Event::KeyUp { keycode: Some(Keycode::Left), ..} => {
-		    let act = Action::Left(piece.clone(), &tetris.board);
+		    let act = Action::Left(tetris.player[0].piece.clone(), &tetris.player[0].board);
 		    //act is moved. So, it cant be access after that.
 		    let result_controller = Tetris::check(act);
 		    match result_controller {
 			ResultController::Ok =>{
-			    let old_position: Piece = piece.translate_left(); // piece est mutable dans son scope mais si on lappelle dans une autre fonction, il faut le préciser.
+			    let old_position: Piece =  tetris.player[0].piece.translate_left(); // piece est mutable dans son scope mais si on lappelle dans une autre fonction, il faut le préciser.
 			    //background.show(&mut tetris.ca;
-			    tetris.draw(&old_position, &piece);
+			    //tetris.draw(&old_position, &piece);
+			    tetris.player[0].piece.draw(&old_position, &mut tetris.canvas, &mut tetris.main_texture);
 			    background.show(&mut tetris.canvas, &mut tetris.main_texture);
 			    //pour des raisons de perf, present n'est pas appelé dans draw
 			    tetris.canvas.copy(&tetris.main_texture, None, None).expect("Cant copy");
@@ -114,14 +101,15 @@ fn main() -> Result<(), String> {
 		}
 
 		Event::KeyUp { keycode: Some(Keycode::Down), ..} => {
-		    let act = Action::Bottom(piece.clone(), &tetris.board);
+		    let act = Action::Bottom( tetris.player[0].piece.clone(), &tetris.player[0].board);
 		    //act is moved. So, it cant be access after that.
 		    let result_controller = Tetris::check(act);
 		    match result_controller {
 			ResultController::Ok =>{
-			    let old_position: Piece = piece.translate_down(); // piece est mutable dans son scope mais si on lappelle dans une autre fonction, il faut le préciser.
+			    let old_position: Piece = tetris.player[0].piece.translate_down(); // piece est mutable dans son scope mais si on lappelle dans une autre fonction, il faut le préciser.
 			    //background.show(&mut tetris.ca;
-			    tetris.draw(&old_position, &piece);
+			    tetris.player[0].piece.draw(&old_position, &mut tetris.canvas, &mut tetris.main_texture);
+			    //tetris.draw(&old_position, &piece);
 			    background.show(&mut tetris.canvas, &mut tetris.main_texture);
 			    //pour des raisons de perf, present n'est pas appelé dans draw
 			    tetris.canvas.copy(&tetris.main_texture, None, None).expect("Cant copy");
@@ -139,12 +127,13 @@ fn main() -> Result<(), String> {
 	if new_time-old_time >= 1000{
 	    old_time = new_time;
 
-	    let act = Action::Bottom(piece.clone(), &tetris.board);
+	    let act = Action::Bottom( tetris.player[0].piece.clone(), &tetris.player[0].board);
 	    let result_controller = Tetris::check(act);
 	    match result_controller {
 		ResultController::Ok =>{
-		    let old_position: Piece = piece.translate_down(); // piece est mutable dans son scope mais si on lappelle dans une autre fonction, il faut le préciser.
-		    tetris.draw(&old_position, &piece);
+		    let old_position: Piece =  tetris.player[0].piece.translate_down(); // piece est mutable dans son scope mais si on lappelle dans une autre fonction, il faut le préciser.
+		    //tetris.draw(&old_position, &piece);
+		    tetris.player[0].piece.draw(&old_position, &mut tetris.canvas, &mut tetris.main_texture);
 		    background.show(&mut tetris.canvas, &mut tetris.main_texture);
 		    tetris.canvas.copy(&tetris.main_texture, None, None).expect("Cant copy");
 		    
@@ -152,9 +141,10 @@ fn main() -> Result<(), String> {
 		    tetris.canvas.present();
 		}
 		ResultController::BottomBorder | ResultController::CollisionPieceBottom => {
-		    tetris.update_board(&piece);
-		    piece.reinit();
-		    tetris.draw(&piece, &piece);
+		    tetris.update_board(&tetris.player[0].piece.clone());
+		    tetris.player[0].piece.reinit();
+		    //tetris.draw(&piece, &piece);
+		    tetris.player[0].piece.draw(&tetris.player[0].piece, &mut tetris.canvas, &mut tetris.main_texture);
 		}
 		_ => {}
 	    }
