@@ -1,8 +1,23 @@
+use crate::model::{Model, TetrisModel};
 use crate::tetris::Board;
+use crate::view::{TetrisView, View};
 use crate::PieceModel;
+use sdl2::render::{Canvas, Texture};
+use sdl2::video::Window;
+use ui::background::Background;
 
-//This is the controller for piece
-//tous les éléments sont publics
+//Contient le controlleur
+
+pub enum TetrisEvent {
+    Right,
+    Left,
+    Bottom,
+    Up,
+    Space,
+    Help,
+}
+
+//Les résultats de la demande dun utilisateur. Le temps est aussi un "utilisateur"
 pub enum ResultController {
     RightBorder,
     LeftBorder,
@@ -22,44 +37,40 @@ where
     Left(T, &'a Board),
 }
 
-pub trait Controller {
-    fn check<T: PieceModel + Iterator>(action: Action<T, Board>) -> ResultController {
-        match action {
-            Action::Right(piece, board) => {
-                //box is a keyword in rust
-                for point in piece.get_points() {
-                    if point.x + 1 >= crate::WIDTH {
-                        return ResultController::RightBorder;
-                    }
-                    if board.get_i_j(point.x + 1, point.y).empty() == false {
-                        return ResultController::CollisionPiece;
-                    }
-                }
-            }
 
-            Action::Left(piece, board) => {
-                //box is a keyword in rust
-                for point in piece.get_points() {
-                    if point.x - 1 < 0 {
-                        return ResultController::RightBorder;
-                    }
-                    if board.get_i_j(point.x - 1, point.y).empty() == false {
-                        return ResultController::CollisionPiece;
-                    }
-                }
-            }
+// Un controlleur contient deux méthodes : update_view et
+pub trait TraitController {
+    fn update_view(&mut self);
+    fn update_model(&mut self, event: TetrisEvent);
+}
 
-            Action::Bottom(piece, board) => {
-                for point in piece.get_points() {
-                    if point.y + 1 >= crate::HEIGHT {
-                        return ResultController::BottomBorder;
-                    }
-                    if board.get_i_j(point.x, point.y + 1).empty() == false {
-                        return ResultController::CollisionPieceBottom;
-                    }
-                }
-            }
+// Notre controller concret
+pub struct Controller2<'a> {
+    pub view: TetrisView<'a>,
+    pub model: TetrisModel,
+}
+
+impl Controller2<'_> {
+    pub fn new<'a>(
+        canvas: Canvas<Window>,
+        texture: Texture<'a>,
+        background: Background<'a>,
+    ) -> Controller2<'a> {
+        Controller2 {
+            view: TetrisView::new(canvas, texture, background),
+            model: TetrisModel::new(),
         }
-        ResultController::Ok
+    }
+}
+
+// on implemente le trait controller complet
+impl TraitController for Controller2<'_> {
+    fn update_view(&mut self) {
+        self.view.update_v(&mut self.model);
+    }
+
+    fn update_model(&mut self, event: TetrisEvent) {
+        self.model.update_m(event);
+        self.update_view();
     }
 }

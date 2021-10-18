@@ -1,11 +1,6 @@
 extern crate sdl2;
 
 use sdl2::rect::Point;
-use sdl2::rect::Rect;
-
-use sdl2::render;
-use sdl2::render::Canvas;
-use sdl2::video::Window;
 use std::collections::HashMap;
 use std::convert::TryInto;
 
@@ -23,11 +18,6 @@ pub trait PieceModel {
     fn get_points(&self) -> [Point; 4];
     fn get_old_points(&self) -> [Point; 4];
     fn get_random_piece() -> [Point; 4];
-}
-
-pub trait PieceView {
-    fn draw(&self, canvas: &mut render::Canvas<Window>, texture: &mut render::Texture);
-    fn draw_back(&self, canvas: &mut render::Canvas<Window>, texture: &mut render::Texture);
 }
 
 #[derive(Clone)] // cela nous permet dutiliser le trait de clone -> self.clone()
@@ -172,35 +162,5 @@ impl PieceModel for Piece {
             case.y += 1;
         }
         copy
-    }
-}
-
-impl PieceView for Piece {
-    fn draw_back(&self, canvas: &mut render::Canvas<Window>, texture: &mut render::Texture) {
-        //println!("{:#?}::\n{:#?}", old_piece, *self);
-        canvas.with_texture_canvas(texture, |texture_p| {
-            texture_p.set_draw_color(sdl2::pixels::Color::RGBA(0, 0, 0, 255));
-            for case in self.get_old_points() {
-                let x = case.x() as i32 * 30;
-                let y = case.y() as i32 * 30;
-                //texture_p.fill_rect(Rect::from((x, y, 28, 28))).expect("Rectange pas dessinable");
-            }
-        });
-    }
-
-    fn draw(&self, canvas: &mut render::Canvas<Window>, texture: &mut render::Texture) {
-        //println!("{:#?}::\n{:#?}", old_piece, *self);
-        canvas.with_texture_canvas(texture, |texture_p| {
-            texture_p.set_draw_color(sdl2::pixels::Color::RGBA(63, 63, 63, 255));
-            for case in self.get_points() {
-                let x = case.x() as i32 * 30;
-                let y = case.y() as i32 * 30;
-                texture_p
-                    .fill_rect(Rect::from((x, y, 28, 28)))
-                    .expect("Rectange pas dessinable");
-            }
-            texture_p.set_draw_color(sdl2::pixels::Color::RGBA(0, 0, 0, 255));
-        });
-        //self.canvas.copy(&self.main_texture, None, None).expect("Cant copy");
     }
 }

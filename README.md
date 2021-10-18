@@ -9,5 +9,5 @@ For the moment, the covered notions are :
  - iterators and closures (https://doc.rust-lang.org/book/ch13-00-functional-features.html)
 
 The c++ version suffers from a lot of problems. So, this tetris in rust uses a MVC design pattern to improve lisibility and unlike the cpp version, there are more abstractions. 
-Some ui components are implemented in a library to strengthen the boundary between the model and the view. 
+Some ui components are implemented in a library to strengthen the boundary between the Model and the View. 
 The ui components are not signal based but the menu ui will be.

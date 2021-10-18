@@ -7,6 +7,7 @@ pub mod background {
     use sdl2::video::Window;
     use sdl2::video::WindowContext;
     // on le déclare public pour quil soit accessible de lextérieur
+
     pub struct Background<'a> {
         pub background_texture: Texture<'a>,
         color: [u8; 4],
@@ -25,7 +26,6 @@ pub mod background {
                 background_texture: texture,
                 color: [0, 0, 63, 255], // la couleur de fond + gamma
             };
-            //back.show2(canvas);
             back.draw(canvas);
             back
         }
@@ -71,7 +71,7 @@ pub mod background {
         pub fn show(&self, canvas: &mut Canvas<Window>, main_texture: &mut Texture) {
             let (x, y) = canvas.window().size();
             //let color = self.color;
-            let result = canvas.with_texture_canvas(main_texture, |texture_canvas| {
+            canvas.with_texture_canvas(main_texture, |texture_canvas| {
                 //initialiser la couleur de fond ici avec color
 
                 texture_canvas.set_draw_color(sdl2::pixels::Color::RGBA(63, 63, 63, 255));
