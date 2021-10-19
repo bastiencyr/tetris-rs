@@ -1,5 +1,5 @@
 use crate::model::Model;
-use crate::piece_gen::{Piece, PieceModel};
+use crate::piece::{Piece, PieceModel};
 use sdl2::rect::Rect;
 use sdl2::render::{Canvas, Texture};
 use sdl2::video::Window;
@@ -23,22 +23,23 @@ impl TetrisView<'_> {
         background: Background<'a>,
     ) -> TetrisView<'a> {
         TetrisView {
-            canvas: canvas,
+            canvas,
             main_texture: texture,
-            background: background,
+            background,
         }
     }
 
     pub fn draw_piece(&mut self, piece: &Piece) {
         //on redessine le fond
         let texture_creator = self.canvas.texture_creator();
-        let back = Background::new(&mut self.canvas, &texture_creator);
+        //TODO its juste a workaround. I make a copy of background
+        let back_workaround = Background::new(&mut self.canvas, &texture_creator);
         for pt in piece.get_old_points() {
             let rect = Rect::new(pt.x * 30, pt.y * 30, 28, 28);
             self.canvas
                 .with_texture_canvas(self.main_texture.borrow_mut(), |texture_canvas| {
                     texture_canvas
-                        .copy(back.background_texture.borrow(), rect, rect)
+                        .copy(&back_workaround.background_texture, rect, rect)
                         .expect("Cant copy");
                 });
             self.canvas
@@ -78,8 +79,6 @@ impl TetrisView<'_> {
 impl View for TetrisView<'_> {
     fn update_v(self: &mut Self, model: &mut Model) {
         self.canvas.clear();
-        self.background
-            .show(&mut self.canvas, &mut self.main_texture);
         self.draw_piece(model.get_piece());
         self.canvas
             .copy(&self.main_texture, None, None)

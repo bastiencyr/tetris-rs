@@ -65,40 +65,15 @@ pub mod background {
                 });
         }
 
-        // This function only accept a texture from canvas to draw on it.
-        // I don't pass the whole tetris struct since this is a library...
-        // show only draw on the main_texture but not on the canvas
-        pub fn show(&self, canvas: &mut Canvas<Window>, main_texture: &mut Texture) {
-            let (x, y) = canvas.window().size();
-            //let color = self.color;
-            canvas.with_texture_canvas(main_texture, |texture_canvas| {
-                //initialiser la couleur de fond ici avec color
-
-                texture_canvas.set_draw_color(sdl2::pixels::Color::RGBA(63, 63, 63, 255));
-
-                let x = x as i32;
-                let y = y as i32;
-                let size_carre = x / 10;
-
-                //verticale
-                for number in 1..10 {
-                    let p1 = Point::from((number * size_carre, 0));
-                    let p2 = Point::from((number * size_carre, y));
-                    texture_canvas
-                        .draw_line(p1, p2)
-                        .expect("Failed to draw line");
-                }
-
-                //horizontale
-                for number in 1..20 {
-                    let p1 = Point::from((0, number * size_carre));
-                    let p2 = Point::from((x, number * size_carre));
-                    texture_canvas
-                        .draw_line(p1, p2)
-                        .expect("Failed to draw line");
-                }
-
-                texture_canvas.set_draw_color(sdl2::pixels::Color::RGBA(0, 0, 0, 255));
+        pub fn copy_back_to_texture(
+            &self,
+            canvas: &mut Canvas<Window>,
+            main_texture: &mut Texture,
+        ) {
+            let result = canvas.with_texture_canvas(main_texture, |texture_canvas| {
+                texture_canvas
+                    .copy(&self.background_texture, None, None)
+                    .expect("Cant copy");
             });
         }
     }

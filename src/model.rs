@@ -1,7 +1,5 @@
-//Contient les données du modèles
-
-use crate::controller::{TetrisEvent};
-use crate::piece_gen::{Piece};
+use crate::controller::TetrisEvent;
+use crate::piece::Piece;
 use crate::player;
 use crate::player::Player;
 
@@ -28,11 +26,21 @@ impl TetrisModel {
 
 impl Model for TetrisModel {
     fn update_m(self: &mut Self, event: TetrisEvent) {
-        // laisser le joueur un (donc le joueur pas IA) update son propre modèle
+        // la logique du modèle est implémentée dans un autre fichier
         self.player[0].update_model(event);
     }
 
     fn get_piece(self: &Self) -> &Piece {
         return &self.player[0].piece;
     }
+}
+
+//Les résultats de la demande dun utilisateur. Le temps est aussi un "utilisateur"
+pub enum ResultUpdateModel {
+    RightBorder,
+    LeftBorder,
+    BottomBorder,
+    Ok,
+    CollisionPiece,
+    CollisionPieceBottom,
 }

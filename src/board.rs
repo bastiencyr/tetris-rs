@@ -13,10 +13,7 @@ impl Board {
         for i in 0..(crate::WIDTH * crate::HEIGHT).try_into().unwrap() {
             grid.push(Box::new(i % crate::WIDTH, i / crate::WIDTH))
         }
-        Board {
-            grid: grid,
-            count: 0,
-        }
+        Board { grid, count: 0 }
     }
 
     pub fn get_i_j(&self, i: i32, j: i32) -> &Box {

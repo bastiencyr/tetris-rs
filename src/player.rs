@@ -1,14 +1,15 @@
-use crate::controller::{ResultController, TetrisEvent};
-use crate::piece_gen::PieceModel;
+use sdl2::rect::Rect;
+
+use crate::controller::TetrisEvent;
+use crate::model::ResultUpdateModel;
+use crate::piece::PieceModel;
 use crate::Board;
 use crate::Piece;
-use sdl2::rect::Rect;
 
 pub struct Player {
     pub pos_board: Rect, //location of the board on the main_window
     pub board: Board,
     pub piece: Piece,
-    //pub background: &'a Background<'a>,
     //stat: Stat, TODO -> implement score
     //pos_stat: Rect, -> position des stats sur le
 }
@@ -19,7 +20,6 @@ impl<'a> Player {
             pos_board: Rect::new(0, 0, 0, 0),
             board: Board::new(),
             piece: Piece::new(),
-            //background: background,
         }
     }
 
@@ -33,16 +33,16 @@ impl<'a> Player {
         }
     }
 
-    pub fn update_model(&mut self, event: TetrisEvent) -> ResultController {
+    pub fn update_model(&mut self, event: TetrisEvent) -> ResultUpdateModel {
         match event {
             TetrisEvent::Right => {
                 //box is a keyword in rust
                 for point in self.piece.get_points() {
                     if point.x + 1 >= crate::WIDTH {
-                        return ResultController::RightBorder;
+                        return ResultUpdateModel::RightBorder;
                     }
                     if self.board.get_i_j(point.x + 1, point.y).empty() == false {
-                        return ResultController::CollisionPiece;
+                        return ResultUpdateModel::CollisionPiece;
                     }
                 }
                 self.piece.translate_right();
@@ -52,10 +52,10 @@ impl<'a> Player {
                 //box is a keyword in rust
                 for point in self.piece.get_points() {
                     if point.x - 1 < 0 {
-                        return ResultController::RightBorder;
+                        return ResultUpdateModel::RightBorder;
                     }
                     if self.board.get_i_j(point.x - 1, point.y).empty() == false {
-                        return ResultController::CollisionPiece;
+                        return ResultUpdateModel::CollisionPiece;
                     }
                 }
                 self.piece.translate_left();
@@ -64,16 +64,25 @@ impl<'a> Player {
             TetrisEvent::Bottom => {
                 for point in self.piece.get_points() {
                     if point.y + 1 >= crate::HEIGHT {
-                        return ResultController::BottomBorder;
+                        self.board.update_board(&self.piece);
+                        self.piece.reinit();
+                        return ResultUpdateModel::BottomBorder;
                     }
                     if self.board.get_i_j(point.x, point.y + 1).empty() == false {
-                        return ResultController::CollisionPieceBottom;
+                        self.board.update_board(&self.piece);
+                        self.piece.reinit();
+                        return ResultUpdateModel::CollisionPieceBottom;
                     }
                 }
                 self.piece.translate_down();
             }
+
+            TetrisEvent::Up => {
+                self.piece.rotate_right();
+            }
+
             _ => {}
         }
-        ResultController::Ok
+        ResultUpdateModel::Ok
     }
 }

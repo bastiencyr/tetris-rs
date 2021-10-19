@@ -6,18 +6,16 @@ use sdl2::keyboard::Keycode;
 const HEIGHT: i32 = 20;
 const WIDTH: i32 = 10;
 
+mod board;
 mod controller;
 mod model;
-mod piece_gen;
+mod piece;
 mod player;
-mod tetris;
 mod view;
 
-use crate::controller::{
-    Controller2, TetrisEvent, TraitController,
-};
-use crate::piece_gen::{Piece, PieceModel};
-use crate::tetris::{Board};
+use crate::board::Board;
+use crate::controller::{Controller, TetrisEvent, TraitController};
+use crate::piece::{Piece, PieceModel};
 
 //la librairie est linké donc pas besoin de limporter comme un module
 use ui::background::Background;
@@ -40,14 +38,15 @@ fn main() -> Result<(), String> {
         .build()
         .map_err(|e| e.to_string())?;
     let main_creator = canvas.texture_creator();
-    let main_texture = main_creator
+    let mut main_texture = main_creator
         .create_texture_target(main_creator.default_pixel_format(), 300, 600)
         .unwrap();
 
     let texture_creator_back = canvas.texture_creator();
     let background = Background::new(&mut canvas, &texture_creator_back);
+    background.copy_back_to_texture(&mut canvas, &mut main_texture);
 
-    let mut controller = Controller2::new((canvas), (main_texture), (background));
+    let mut controller = Controller::new((canvas), (main_texture), (background));
 
     //let mut tetris = Tetris::new(canvas, main_texture, &background); //canvas is moved , so it is not accessible anymore
     controller.update_view();
@@ -90,6 +89,14 @@ fn main() -> Result<(), String> {
                 } => {
                     controller.update_model(TetrisEvent::Bottom); //on_key_right();
                 }
+
+                Event::KeyUp {
+                    keycode: Some(Keycode::Up),
+                    ..
+                } => {
+                    controller.update_model(TetrisEvent::Up); //on_key_right();
+                }
+
                 _ => {}
             }
         }
