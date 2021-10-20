@@ -3,7 +3,7 @@ use crate::piece::{Piece, PieceModel};
 use sdl2::rect::Rect;
 use sdl2::render::{Canvas, Texture};
 use sdl2::video::Window;
-use std::borrow::{Borrow, BorrowMut};
+use std::borrow::{BorrowMut};
 use ui::background::Background;
 
 pub trait View {

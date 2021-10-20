@@ -123,20 +123,20 @@ impl PieceModel for Piece {
     }
 
     fn rotate_right(&mut self) -> Piece {
-        let copy = self.clone();
-        self.old_data = self.data;
+        let mut copy = self.clone();
+        copy.old_data = copy.data;
 
         if self.name == String::from("square") {
             return copy;
         }
         let center = self.get_center();
-        for case_index in self.data.iter_mut().enumerate() {
+        for case_index in copy.data.iter_mut().enumerate() {
             // on met a jour les données
             let index = case_index.0;
             let case = case_index.1;
 
-            case.x = self.old_data.get(index).unwrap().y() - center.y() + center.x();
-            case.y = center.x() - self.old_data.get(index).unwrap().x() + center.y();
+            case.x = copy.old_data.get(index).unwrap().y() - center.y() + center.x();
+            case.y = center.x() - copy.old_data.get(index).unwrap().x() + center.y();
         }
         //case.x = ;
         copy

@@ -78,7 +78,26 @@ impl<'a> Player {
             }
 
             TetrisEvent::Up => {
-                self.piece.rotate_right();
+                let rotate_piece = self.piece.rotate_right();
+                for point in rotate_piece.get_points() {
+                    if point.x < 0 {
+                        return ResultUpdateModel::LeftBorder;
+                    }
+                    if point.x >= crate::WIDTH {
+                        return ResultUpdateModel::RightBorder;
+                    }
+                    if point.y >= crate::HEIGHT {
+                        return ResultUpdateModel::BottomBorder;
+                    }
+                    if point.y < 0 {
+                        return ResultUpdateModel::BottomBorder;
+                    }
+                    if self.board.get_i_j(point.x, point.y).empty() == false {
+                        return ResultUpdateModel::CollisionPiece;
+                    }
+
+                }
+                self.piece = rotate_piece;
             }
 
             _ => {}

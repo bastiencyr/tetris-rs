@@ -18,6 +18,15 @@ impl Board {
 
     pub fn get_i_j(&self, i: i32, j: i32) -> &Box {
         let index = j * crate::WIDTH + i;
+        if j<0 {
+            print!("Someone try to get an illegal value from the board, {}, {}", i, j);
+            return &self.grid[0];
+        }
+        if j>= crate::WIDTH*crate::HEIGHT {
+            print!("Someone try to get an illegal value from he board, {}, {}", i, j);
+            return &self.grid[0];
+        }
+
         &self.grid[index as usize]
     }
 
