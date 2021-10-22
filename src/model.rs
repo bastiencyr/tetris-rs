@@ -5,7 +5,7 @@ use crate::player::Player;
 
 pub trait Model {
     fn update_m(self: &mut Self, event: TetrisEvent);
-    fn get_piece(self: &Self) -> &Piece;
+    fn get_model(self: &Self) -> &TetrisModel;
 }
 
 pub struct TetrisModel {
@@ -19,8 +19,12 @@ impl TetrisModel {
         }
     }
 
-    pub fn update_board<T: crate::PieceModel>(&mut self, piece: &T) {
+    pub fn update_board(&mut self, piece: &Piece) {
         self.player[0].board.update_board(piece);
+    }
+
+    pub(crate) fn get_piece(self: &Self) -> &Piece {
+        return &self.player[0].piece;
     }
 }
 
@@ -30,8 +34,8 @@ impl Model for TetrisModel {
         self.player[0].update_model(event);
     }
 
-    fn get_piece(self: &Self) -> &Piece {
-        return &self.player[0].piece;
+    fn get_model(self: &Self) -> &TetrisModel {
+        self
     }
 }
 

@@ -1,3 +1,4 @@
+use std::borrow::Borrow;
 use crate::model::{Model, TetrisModel};
 use crate::view::{TetrisView, View};
 use sdl2::render::{Canvas, Texture};
@@ -21,18 +22,18 @@ pub trait TraitController {
     fn update_model(&mut self, event: TetrisEvent);
 }
 
-// Notre controller concret
-pub struct Controller<'a> {
-    pub view: TetrisView<'a>,
+// Notre controller générique
+pub struct Controller<T: View> {
+    pub view: T,
     pub model: TetrisModel,
 }
 
-impl Controller<'_> {
+impl Controller<TetrisView <'_> > {
     pub fn new<'a>(
         canvas: Canvas<Window>,
         texture: Texture<'a>,
         background: Background<'a>,
-    ) -> Controller<'a> {
+    ) -> Controller<TetrisView<'a>> {
         Controller {
             view: TetrisView::new(canvas, texture, background),
             model: TetrisModel::new(),
@@ -41,9 +42,9 @@ impl Controller<'_> {
 }
 
 // on implemente le trait controller complet
-impl TraitController for Controller<'_> {
+impl TraitController for Controller<TetrisView <'_>> {
     fn update_view(&mut self) {
-        self.view.update_v(&mut self.model);
+        self.view.update_v(self.model.borrow());
     }
 
     fn update_model(&mut self, event: TetrisEvent) {

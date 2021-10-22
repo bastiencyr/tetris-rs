@@ -3,31 +3,33 @@ extern crate sdl2;
 use sdl2::rect::Point;
 use std::collections::HashMap;
 use std::convert::TryInto;
+use getset::{CopyGetters, Getters, MutGetters, Setters};
 
 // une pièe doit implémenter un certain nombre de méthode
 pub trait PieceModel {
-    // translateRight modifie la donnée de notre modèle.
-    //retourne une nouvelle pièce
     fn new() -> Self;
-    fn reinit(&mut self);
     fn get_center(&self) -> Point;
-    //décale la pièce vers la droite sans vérification
     fn translate_right(&mut self) -> Self;
     fn translate_left(&mut self) -> Self;
     fn translate_down(&mut self) -> Self;
     fn rotate_right(&mut self) -> Piece;
     fn rotate_left(&mut self) -> Piece;
-    //retourne les positions de chaque carré de la pièce
-    fn get_points(&self) -> [Point; 4];
-    fn get_old_points(&self) -> [Point; 4];
-    fn get_random_piece() -> Piece;
+
+    // SETTERS //
+    fn set_name(&mut self, name: String);
+    fn set_data(&mut self, data: [Point; 4]);
+    fn set_old_data(&mut self, old_data: [Point; 4]);
 }
 
 #[derive(Clone)] // cela nous permet dutiliser le trait de clone -> self.clone()
 #[derive(Debug)]
+#[derive(Getters, Setters)]
 pub struct Piece {
+    #[getset(get="pub", set="pub")]
     name: String,
+    #[getset(get="pub", set="pub")]
     old_data: [Point; 4],
+    #[getset(get="pub", set="pub")]
     data: [Point; 4],
     count: i32,
     //color: -> couleur du fond = (R,G,B)
@@ -73,18 +75,11 @@ impl PieceModel for Piece {
         }
     }
 
-    fn reinit(&mut self) {
-        let random_piece = Piece::get_random_piece();
-        self.data = random_piece.data;
-        self.name = random_piece.name;
-        self.old_data = self.data;
-    }
-
     fn get_center(&self) -> Point {
-        if self.name == "eclair" {
+        if self.name() == "eclair" {
             return self.data.get(1).unwrap().clone();
         }
-        if self.name == "barre" {
+        if self.name() == "barre" {
             return self.data.get(1).unwrap().clone();
         }
         self.data.get(0).unwrap().clone()
@@ -146,55 +141,15 @@ impl PieceModel for Piece {
         todo!()
     }
 
-    fn get_points(&self) -> [Point; 4] {
-        return self.data.clone();
+    fn set_name(&mut self, name: String) {
+        self.set_name(name);
     }
 
-    fn get_old_points(&self) -> [Point; 4] {
-        return self.old_data.clone();
+    fn set_data(&mut self, data: [Point; 4]) {
+        self.data = data;
     }
 
-    fn get_random_piece() -> Piece {
-        let mut pieces = HashMap::new();
-        let mut p = Piece::new();
-
-        p.data = [
-            Point::from((0, 0)),
-            Point::from((0, 1)),
-            Point::from((0, 2)),
-            Point::from((0, 3)),
-        ];
-        p.name = String::from("barre");
-        pieces.insert(0, p.clone());
-
-        p.name = String::from("square");
-        p.data = [
-            Point::from((0, 0)),
-            Point::from((0, 1)),
-            Point::from((1, 0)),
-            Point::from((1, 1)),
-        ];
-        pieces.insert(1, p.clone());
-
-        p.name = String::from("eclair");
-        p.data = [
-            Point::from((0, 1)),
-            Point::from((1, 0)),
-            Point::from((2, 0)),
-            Point::from((1, 1)),
-        ];
-        pieces.insert(2, p.clone());
-
-        p.name = String::from("coude");
-        p.data = [
-            Point::from((0, 0)),
-            Point::from((1, 0)),
-            Point::from((2, 0)),
-            Point::from((1, 1)),
-        ];
-        pieces.insert(3, p.clone());
-
-        let i: u32 = rand::random();
-        return pieces.get(&(i % 4)).unwrap().clone();
+    fn set_old_data(&mut self, old_data: [Point; 4]) {
+        self.old_data = old_data;
     }
 }

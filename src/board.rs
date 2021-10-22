@@ -1,5 +1,6 @@
 use sdl2::rect::Point;
 use std::convert::TryInto;
+use crate::piece::Piece;
 
 #[derive(Debug, Clone)]
 pub struct Board {
@@ -18,12 +19,18 @@ impl Board {
 
     pub fn get_i_j(&self, i: i32, j: i32) -> &Box {
         let index = j * crate::WIDTH + i;
-        if j<0 {
-            print!("Someone try to get an illegal value from the board, {}, {}", i, j);
+        if j < 0 {
+            print!(
+                "Someone try to get an illegal value from the board, {}, {}",
+                i, j
+            );
             return &self.grid[0];
         }
-        if j>= crate::WIDTH*crate::HEIGHT {
-            print!("Someone try to get an illegal value from he board, {}, {}", i, j);
+        if j >= crate::WIDTH * crate::HEIGHT {
+            print!(
+                "Someone try to get an illegal value from he board, {}, {}",
+                i, j
+            );
             return &self.grid[0];
         }
 
@@ -35,8 +42,8 @@ impl Board {
         &mut self.grid[index as usize]
     }
 
-    pub fn update_board<T: crate::PieceModel>(&mut self, piece: &T) {
-        for case in piece.get_points() {
+    pub fn update_board(&mut self, piece: &Piece) {
+        for case in piece.data() {
             self.get_mut_ij(case.x, case.y).empty = false;
         }
     }

@@ -1,13 +1,13 @@
-use crate::model::Model;
+use crate::model::{Model, TetrisModel};
 use crate::piece::{Piece, PieceModel};
 use sdl2::rect::Rect;
 use sdl2::render::{Canvas, Texture};
 use sdl2::video::Window;
-use std::borrow::{BorrowMut};
+use std::borrow::BorrowMut;
 use ui::background::Background;
 
 pub trait View {
-    fn update_v(self: &mut Self, model: &mut Model);
+    fn update_v<T: Model>(self: &mut Self, model: &T);
 }
 
 pub struct TetrisView<'a> {
@@ -34,7 +34,7 @@ impl TetrisView<'_> {
         let texture_creator = self.canvas.texture_creator();
         //TODO its juste a workaround. I make a copy of background
         let back_workaround = Background::new(&mut self.canvas, &texture_creator);
-        for pt in piece.get_old_points() {
+        for pt in piece.old_data() {
             let rect = Rect::new(pt.x * 30, pt.y * 30, 28, 28);
             self.canvas
                 .with_texture_canvas(self.main_texture.borrow_mut(), |texture_canvas| {
@@ -49,7 +49,7 @@ impl TetrisView<'_> {
 
         self.draw(&piece);
         // on copie uniquement les pièces sur notre texture.
-        for pt in piece.get_points() {
+        for pt in piece.data() {
             //println!("pt x, {}, pt y: {}", pt.x, pt.y);
             let rect = Rect::new(pt.x * 30, pt.y * 30, 28, 28);
             self.canvas
@@ -63,7 +63,7 @@ impl TetrisView<'_> {
         self.canvas
             .with_texture_canvas(self.main_texture.borrow_mut(), |texture_p| {
                 texture_p.set_draw_color(sdl2::pixels::Color::RGBA(63, 63, 63, 255));
-                for case in piece.get_points() {
+                for case in piece.data() {
                     let x = case.x() as i32 * 30;
                     let y = case.y() as i32 * 30;
                     texture_p
@@ -77,9 +77,9 @@ impl TetrisView<'_> {
 }
 
 impl View for TetrisView<'_> {
-    fn update_v(self: &mut Self, model: &mut Model) {
+    fn update_v<T: Model>(self: &mut Self, model: &T) {
         self.canvas.clear();
-        self.draw_piece(model.get_piece());
+        self.draw_piece(model.get_model().get_piece());
         self.canvas
             .copy(&self.main_texture, None, None)
             .expect("Cant copy");
