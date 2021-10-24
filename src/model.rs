@@ -23,7 +23,7 @@ impl TetrisModel {
         self.player[0].board.update_board(piece);
     }
 
-    pub(crate) fn get_piece(self: &Self) -> &Piece {
+    pub fn get_piece(self: &Self) -> &Piece {
         return &self.player[0].piece;
     }
 }

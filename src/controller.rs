@@ -23,28 +23,33 @@ pub trait TraitController {
 }
 
 // Notre controller générique
-pub struct Controller<T: View> {
-    pub view: T,
+pub struct Controller <'a>{
+    pub view2: Vec<Box<dyn View + 'a>>,
+    //pub view: T,
     pub model: TetrisModel,
 }
 
-impl Controller<TetrisView <'_> > {
+impl Controller <'_>{
     pub fn new<'a>(
         canvas: Canvas<Window>,
         texture: Texture<'a>,
         background: Background<'a>,
-    ) -> Controller<TetrisView<'a>> {
+    ) -> Controller <'a> {
         Controller {
-            view: TetrisView::new(canvas, texture, background),
+            view2: vec![
+            Box::new(TetrisView::new(canvas, texture, background))
+                ],
             model: TetrisModel::new(),
         }
     }
 }
 
 // on implemente le trait controller complet
-impl TraitController for Controller<TetrisView <'_>> {
+impl TraitController for Controller <'_> {
     fn update_view(&mut self) {
-        self.view.update_v(self.model.borrow());
+        for view in self.view2.iter_mut() {
+            view.update_v(self.model.borrow());
+        }
     }
 
     fn update_model(&mut self, event: TetrisEvent) {

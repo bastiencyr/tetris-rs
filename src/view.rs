@@ -7,7 +7,7 @@ use std::borrow::BorrowMut;
 use ui::background::Background;
 
 pub trait View {
-    fn update_v<T: Model>(self: &mut Self, model: &T);
+    fn update_v(self: &mut Self, model: &TetrisModel);
 }
 
 pub struct TetrisView<'a> {
@@ -77,7 +77,7 @@ impl TetrisView<'_> {
 }
 
 impl View for TetrisView<'_> {
-    fn update_v<T: Model>(self: &mut Self, model: &T) {
+    fn update_v(self: &mut Self, model: &TetrisModel) {
         self.canvas.clear();
         self.draw_piece(model.get_model().get_piece());
         self.canvas
