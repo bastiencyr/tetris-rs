@@ -1,10 +1,14 @@
-use crate::model::{Model, TetrisModel};
-use crate::piece::{Piece, PieceModel};
+use std::borrow::BorrowMut;
+
+use sdl2::pixels::Color;
 use sdl2::rect::Rect;
 use sdl2::render::{Canvas, Texture};
 use sdl2::video::Window;
-use std::borrow::BorrowMut;
+
 use ui::background::Background;
+
+use crate::model::{Model, TetrisModel};
+use crate::piece::{Piece, PieceModel};
 
 pub trait View {
     fn update_v(self: &mut Self, model: &TetrisModel);
@@ -27,6 +31,46 @@ impl TetrisView<'_> {
             main_texture: texture,
             background,
         }
+    }
+
+    pub fn draw_board(&mut self, model: &TetrisModel) {
+        let texture_creator = self.canvas.texture_creator();
+        //TODO its juste a workaround. I make a copy of background
+        let back_workaround = Background::new(&mut self.canvas, &texture_creator);
+
+        self.canvas
+            .with_texture_canvas(self.main_texture.borrow_mut(), |texture_canvas| {
+
+                //on recopie le fond
+                texture_canvas
+                    .copy(&back_workaround.background_texture, None, None)
+                    .expect("Cant copy");
+
+                // on recopie les pièces déjà présente
+                texture_canvas.set_draw_color(Color::RGBA(63, 63, 63, 255));
+
+                for i in 0..crate::WIDTH {
+                    for j in 0..crate::HEIGHT {
+                        if model.get_model().player[0].board.get_i_j(i, j).empty() == false {
+                            let rect = Rect::new(i * 30, j * 30, 28, 28);
+                            texture_canvas
+                                .fill_rect(rect)
+                                .expect("Rectange pas dessinable");
+                        }
+                    }
+                }
+
+                // on recopie la pièce qui tombait
+                for case in model.get_model().player[0].piece.data() {
+                    let x = case.x() as i32 * 30;
+                    let y = case.y() as i32 * 30;
+                    texture_canvas
+                        .fill_rect(Rect::from((x, y, 28, 28)))
+                        .expect("Rectange pas dessinable");
+                }
+
+                texture_canvas.set_draw_color(sdl2::pixels::Color::RGBA(0, 0, 0, 255));
+            });
     }
 
     pub fn draw_piece(&mut self, piece: &Piece) {
@@ -79,11 +123,10 @@ impl TetrisView<'_> {
 impl View for TetrisView<'_> {
     fn update_v(self: &mut Self, model: &TetrisModel) {
         self.canvas.clear();
-        self.draw_piece(model.get_model().get_piece());
+        self.draw_board(model);
         self.canvas
             .copy(&self.main_texture, None, None)
             .expect("Cant copy");
-
         self.canvas.present();
     }
 }

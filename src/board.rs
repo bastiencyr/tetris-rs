@@ -1,10 +1,13 @@
-use sdl2::rect::Point;
 use std::convert::TryInto;
+
+use sdl2::rect::Point;
+
 use crate::piece::Piece;
 
 #[derive(Debug, Clone)]
 pub struct Board {
-    grid: Vec<Box>, //grid is a  vector of boxes. Each box represents in the tetris.
+    grid: Vec<Case>,
+    //grid is a  vector of boxes. Each box represents in the tetris.
     count: i32,
 }
 
@@ -12,21 +15,22 @@ impl Board {
     pub fn new() -> Board {
         let mut grid = Vec::new();
         for i in 0..(crate::WIDTH * crate::HEIGHT).try_into().unwrap() {
-            grid.push(Box::new(i % crate::WIDTH, i / crate::WIDTH))
+            grid.push(Case::new(i % crate::WIDTH, i / crate::WIDTH))
         }
         Board { grid, count: 0 }
     }
 
-    pub fn get_i_j(&self, i: i32, j: i32) -> &Box {
+    // j = ligne (y), i = colonne (x)
+    pub fn get_i_j(&self, i: i32, j: i32) -> &Case {
         let index = j * crate::WIDTH + i;
-        if j < 0 {
+        if index < 0 {
             print!(
                 "Someone try to get an illegal value from the board, {}, {}",
                 i, j
             );
             return &self.grid[0];
         }
-        if j >= crate::WIDTH * crate::HEIGHT {
+        if index >= crate::WIDTH * crate::HEIGHT {
             print!(
                 "Someone try to get an illegal value from he board, {}, {}",
                 i, j
@@ -37,27 +41,50 @@ impl Board {
         &self.grid[index as usize]
     }
 
-    pub fn get_mut_ij(&mut self, i: i32, j: i32) -> &mut Box {
+    pub fn get_mut_ij(&mut self, i: i32, j: i32) -> &mut Case {
         let index = j * crate::WIDTH + i;
         &mut self.grid[index as usize]
     }
 
     pub fn update_board(&mut self, piece: &Piece) {
         for case in piece.data() {
-            self.get_mut_ij(case.x, case.y).empty = false;
+            self.get_mut_ij(case.x, case.y).set_empty(false);
+        }
+        for (line, full_line) in self.get_full_lines().iter().enumerate() {
+            if *full_line {
+                print!("Remove LINE {}", line);
+                self.remove_line(line as i32);
+            }
+        }
+        self.print_mat();
+    }
+
+    pub fn get_full_lines(&self) -> [bool; crate::HEIGHT as usize] {
+        let mut v = [true; crate::HEIGHT as usize];
+        for y in 0..crate::HEIGHT {
+            for x in 0..crate::WIDTH {
+                if self.get_i_j(x, y).empty() == true {
+                    v[y as usize] = false;
+                }
+            }
+        }
+        v
+    }
+
+    pub fn remove_line(&mut self, line: i32) {
+        for y in (1..line + 1).rev() {
+            println!("{}", line);
+            for x in 0..crate::WIDTH {
+                let e = self.get_i_j(x, y - 1).empty();
+                self.get_mut_ij(x, y).set_empty(e);
+            }
+        }
+        //on supprime la ligne la plus haute; y=0
+        for x in 0..crate::WIDTH {
+            self.get_mut_ij(x, 0).set_empty(true);
         }
     }
-    /*
-    pub fn full_line(&self)->Vec{
-    let full_line = Vec::new();
-    let mut full = false;
-    //since we can iterate over lines or columns, we need two kind of iterators
-    for line in &self.iterate_lines{
-        for case in line{
-        }
-    }
-    }
-    */
+
     pub fn print_mat(&self) {
         for case in &self.grid {
             if case.newline() {
@@ -72,16 +99,17 @@ impl Board {
         print!("\n");
     }
 }
+
 //a box represent a square object in the board
 #[derive(Debug, Clone)]
-pub struct Box {
+pub struct Case {
     coord: Point,
     empty: bool,
 }
 
-impl Box {
-    fn new(i: i32, j: i32) -> Box {
-        Box {
+impl Case {
+    fn new(i: i32, j: i32) -> Case {
+        Case {
             coord: Point::new(i, j),
             empty: true,
         }
@@ -106,7 +134,7 @@ impl Box {
 //bancal -> à revoir
 impl Iterator for Board {
     //on implémenter litérateur
-    type Item = Box;
+    type Item = Case;
 
     fn next(&mut self) -> Option<Self::Item> {
         let index = self.count as usize;
