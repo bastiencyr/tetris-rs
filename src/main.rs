@@ -3,6 +3,13 @@ extern crate sdl2;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 
+//la librairie est linké donc pas besoin de limporter comme un module
+use ui::background::Background;
+
+use crate::board::Board;
+use crate::controller::{Controller, TetrisEvent, TraitController};
+use crate::piece::Piece;
+
 const HEIGHT: i32 = 20;
 const WIDTH: i32 = 10;
 
@@ -12,13 +19,6 @@ mod model;
 mod piece;
 mod player;
 mod view;
-
-use crate::board::Board;
-use crate::controller::{Controller, TetrisEvent, TraitController};
-use crate::piece::{Piece, PieceModel};
-
-//la librairie est linké donc pas besoin de limporter comme un module
-use ui::background::Background;
 
 fn main() -> Result<(), String> {
     let sdl_context = sdl2::init()?;
@@ -46,7 +46,7 @@ fn main() -> Result<(), String> {
     let background = Background::new(&mut canvas, &texture_creator_back);
     background.copy_back_to_texture(&mut canvas, &mut main_texture);
 
-    let mut controller = Controller::new((canvas), (main_texture), (background));
+    let mut controller = Controller::new(canvas, main_texture, background);
 
     //let mut tetris = Tetris::new(canvas, main_texture, &background); //canvas is moved , so it is not accessible anymore
     controller.update_view();

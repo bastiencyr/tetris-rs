@@ -1,12 +1,13 @@
-use sdl2::rect::Point;
-use sdl2::rect::Rect;
 use std::collections::HashMap;
 
+use sdl2::rect::Point;
+use sdl2::rect::Rect;
+
+use crate::Board;
 use crate::controller::TetrisEvent;
 use crate::model::ResultUpdateModel;
-use crate::piece::PieceModel;
-use crate::Board;
 use crate::Piece;
+use crate::piece::PieceModel;
 
 pub struct Player {
     pub pos_board: Rect, //location of the board on the main_window
@@ -35,7 +36,7 @@ impl<'a> Player {
 
     pub fn update_board(&mut self) {
         for case in self.piece.data() {
-            (self.board.get_mut_ij(case.x, case.y)).set_empty(false);
+            (self.board.get_case_borrow_mut(case.x, case.y)).set_empty(false);
         }
     }
 
@@ -47,7 +48,7 @@ impl<'a> Player {
                     if point.x + 1 >= crate::WIDTH {
                         return ResultUpdateModel::RightBorder;
                     }
-                    if self.board.get_i_j(point.x + 1, point.y).empty() == false {
+                    if self.board.get_case_borrow(point.x + 1, point.y).empty() == false {
                         return ResultUpdateModel::CollisionPiece;
                     }
                 }
@@ -60,7 +61,7 @@ impl<'a> Player {
                     if point.x - 1 < 0 {
                         return ResultUpdateModel::RightBorder;
                     }
-                    if self.board.get_i_j(point.x - 1, point.y).empty() == false {
+                    if self.board.get_case_borrow(point.x - 1, point.y).empty() == false {
                         return ResultUpdateModel::CollisionPiece;
                     }
                 }
@@ -74,7 +75,7 @@ impl<'a> Player {
                         self.re_init_piece();
                         return ResultUpdateModel::BottomBorder;
                     }
-                    if self.board.get_i_j(point.x, point.y + 1).empty() == false {
+                    if self.board.get_case_borrow(point.x, point.y + 1).empty() == false {
                         self.board.update_board(&self.piece);
                         self.re_init_piece();
                         return ResultUpdateModel::CollisionPieceBottom;
@@ -98,7 +99,7 @@ impl<'a> Player {
                     if point.y < 0 {
                         return ResultUpdateModel::BottomBorder;
                     }
-                    if self.board.get_i_j(point.x, point.y).empty() == false {
+                    if self.board.get_case_borrow(point.x, point.y).empty() == false {
                         return ResultUpdateModel::CollisionPiece;
                     }
                 }

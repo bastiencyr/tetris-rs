@@ -1,9 +1,9 @@
 extern crate sdl2;
 
-use sdl2::rect::Point;
-use std::collections::HashMap;
 use std::convert::TryInto;
-use getset::{CopyGetters, Getters, MutGetters, Setters};
+
+use getset::{Getters, Setters};
+use sdl2::rect::Point;
 
 // une pièe doit implémenter un certain nombre de méthode
 pub trait PieceModel {
@@ -13,7 +13,6 @@ pub trait PieceModel {
     fn translate_left(&mut self) -> Self;
     fn translate_down(&mut self) -> Self;
     fn rotate_right(&mut self) -> Piece;
-    fn rotate_left(&mut self) -> Piece;
 
     // SETTERS //
     fn set_name(&mut self, name: String);
@@ -135,10 +134,6 @@ impl PieceModel for Piece {
         }
         //case.x = ;
         copy
-    }
-
-    fn rotate_left(&mut self) -> Piece {
-        todo!()
     }
 
     fn set_name(&mut self, name: String) {

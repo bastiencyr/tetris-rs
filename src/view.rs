@@ -8,7 +8,7 @@ use sdl2::video::Window;
 use ui::background::Background;
 
 use crate::model::{Model, TetrisModel};
-use crate::piece::{Piece, PieceModel};
+use crate::piece::Piece;
 
 pub trait View {
     fn update_v(self: &mut Self, model: &TetrisModel);
@@ -49,14 +49,12 @@ impl TetrisView<'_> {
                 // on recopie les pièces déjà présente
                 texture_canvas.set_draw_color(Color::RGBA(63, 63, 63, 255));
 
-                for i in 0..crate::WIDTH {
-                    for j in 0..crate::HEIGHT {
-                        if model.get_model().player[0].board.get_i_j(i, j).empty() == false {
-                            let rect = Rect::new(i * 30, j * 30, 28, 28);
-                            texture_canvas
-                                .fill_rect(rect)
-                                .expect("Rectange pas dessinable");
-                        }
+                //we use our iterator here
+                for case in &model.get_model().player[0].board {
+                    if case.empty() == false {
+                        let rect = Rect::new(case.x() * 30, case.y() * 30, 28, 28);
+                        texture_canvas
+                            .fill_rect(rect);
                     }
                 }
 
