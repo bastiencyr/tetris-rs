@@ -40,6 +40,7 @@ impl Model for TetrisModel {
 }
 
 //Les résultats de la demande dun utilisateur. Le temps est aussi un "utilisateur"
+#[derive(PartialEq, Eq)]
 pub enum ResultUpdateModel {
     RightBorder,
     LeftBorder,

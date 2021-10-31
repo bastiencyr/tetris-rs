@@ -1,6 +1,4 @@
-use std::borrow::Borrow;
 use std::convert::TryInto;
-use std::slice;
 use std::slice::{Iter, IterMut};
 
 use sdl2::rect::Point;
@@ -26,18 +24,12 @@ impl Board {
     // j = ligne (y), i = colonne (x)
     pub fn get_case_borrow(&self, i: i32, j: i32) -> &Case {
         let index = j * crate::WIDTH + i;
-        if index < 0 {
+        if index < 0 || index >= crate::WIDTH * crate::HEIGHT {
             print!(
-                "Someone try to get an illegal value from the board, {}, {}",
+                "Someone try to get an illegal value from the board. Request {}, {}",
                 i, j
             );
-            return &self.grid[0];
-        }
-        if index >= crate::WIDTH * crate::HEIGHT {
-            print!(
-                "Someone try to get an illegal value from he board, {}, {}",
-                i, j
-            );
+            //return a default case even if the request case does not exist
             return &self.grid[0];
         }
 
@@ -47,21 +39,13 @@ impl Board {
     pub fn get_case_borrow_mut(&mut self, i: i32, j: i32) -> &mut Case {
         let index = j * crate::WIDTH + i;
 
-        if index < 0 {
+        if index < 0 || index >= crate::WIDTH * crate::HEIGHT {
             print!(
-                "Someone try to get an illegal value from the board, {}, {}",
+                "Someone try to get an illegal value from the board. Request {}, {}",
                 i, j
             );
             return &mut self.grid[0];
         }
-        if index >= crate::WIDTH * crate::HEIGHT {
-            print!(
-                "Someone try to get an illegal value from he board, {}, {}",
-                i, j
-            );
-            return &mut self.grid[0];
-        }
-        //&mut self.grid[index as usize]
         //here we use our iterator. It's not better but we use iterator
         self.into_iter().nth(index as usize).unwrap()
     }
@@ -92,7 +76,6 @@ impl Board {
 
     fn remove_line(&mut self, line: i32) {
         for y in (1..line + 1).rev() {
-            println!("{}", line);
             for x in 0..crate::WIDTH {
                 let e = self.get_case_borrow(x, y - 1).empty();
                 self.get_case_borrow_mut(x, y).set_empty(e);
@@ -177,6 +160,8 @@ impl  Iterator for Board {
 }
 
  */
+
+//TODO implement iterator over line and column
 
 impl IntoIterator for Board {
     type Item = Case;

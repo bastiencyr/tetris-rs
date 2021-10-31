@@ -97,6 +97,13 @@ fn main() -> Result<(), String> {
                     controller.update_model(TetrisEvent::Up); //on_key_right();
                 }
 
+                Event::KeyUp {
+                    keycode: Some(Keycode::Space),
+                    ..
+                } => {
+                    controller.update_model(TetrisEvent::Space); //on_key_right();
+                }
+
                 _ => {}
             }
         }

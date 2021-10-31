@@ -1,7 +1,5 @@
 extern crate sdl2;
 
-use std::convert::TryInto;
-
 use getset::{Getters, Setters};
 use sdl2::rect::Point;
 
@@ -34,23 +32,6 @@ pub struct Piece {
     //color: -> couleur du fond = (R,G,B)
 }
 
-//bancal -> à revoir
-impl Iterator for Piece {
-    //on implémenter litérateur
-    type Item = Point;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        let index = self.count as usize;
-        if self.count < self.data.len().try_into().unwrap() {
-            self.count += 1;
-            Some(self.data[index].clone())
-        } else {
-            self.count = 0;
-            None // on renvoie None pour le dernier élément.
-        }
-    }
-}
-
 impl Piece {}
 
 impl PieceModel for Piece {
@@ -79,6 +60,9 @@ impl PieceModel for Piece {
             return self.data.get(1).unwrap().clone();
         }
         if self.name() == "barre" {
+            return self.data.get(1).unwrap().clone();
+        }
+        if self.name() == "coude" {
             return self.data.get(1).unwrap().clone();
         }
         self.data.get(0).unwrap().clone()

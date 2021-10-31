@@ -106,6 +106,13 @@ impl<'a> Player {
                 self.piece = rotate_piece;
             }
 
+            TetrisEvent::Space => {
+                let mut res = self.update_model(TetrisEvent::Bottom);
+                while res == ResultUpdateModel::Ok {
+                    res = self.update_model(TetrisEvent::Bottom);
+                }
+            }
+
             _ => {}
         }
         ResultUpdateModel::Ok
