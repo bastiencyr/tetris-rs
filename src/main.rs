@@ -109,9 +109,10 @@ fn main() -> Result<(), String> {
         }
 
         new_time = timer.ticks() as i32;
-        if new_time - old_time >= 1000 {
+        // send a signal every 10 milliseconds
+        if new_time - old_time >= 10 {
             old_time = new_time;
-            controller.update_model(TetrisEvent::Bottom);
+            controller.update_model(TetrisEvent::Time(10 as usize));
         }
     }
     Ok(())

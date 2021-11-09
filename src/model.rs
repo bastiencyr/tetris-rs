@@ -1,5 +1,4 @@
 use crate::controller::TetrisEvent;
-use crate::piece::Piece;
 use crate::player;
 use crate::player::Player;
 
@@ -17,14 +16,6 @@ impl TetrisModel {
         TetrisModel {
             player: vec![Player::new()],
         }
-    }
-
-    pub fn update_board(&mut self, piece: &Piece) {
-        self.player[0].board.update_board(piece);
-    }
-
-    pub fn get_piece(self: &Self) -> &Piece {
-        return &self.player[0].piece;
     }
 }
 

@@ -1,9 +1,12 @@
 use std::borrow::Borrow;
-use crate::model::{Model, TetrisModel};
-use crate::view::{TetrisView, View};
+
 use sdl2::render::{Canvas, Texture};
 use sdl2::video::Window;
+
 use ui::background::Background;
+
+use crate::model::{Model, TetrisModel};
+use crate::view::{TetrisView, View};
 
 //Contient le controlleur
 
@@ -13,7 +16,7 @@ pub enum TetrisEvent {
     Bottom,
     Up,
     Space,
-    Help,
+    Time(usize),
 }
 
 // Un controlleur contient deux méthodes : update_view et

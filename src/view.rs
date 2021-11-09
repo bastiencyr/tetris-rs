@@ -40,7 +40,6 @@ impl TetrisView<'_> {
 
         self.canvas
             .with_texture_canvas(self.main_texture.borrow_mut(), |texture_canvas| {
-
                 //on recopie le fond
                 texture_canvas
                     .copy(&back_workaround.background_texture, None, None)
@@ -53,8 +52,7 @@ impl TetrisView<'_> {
                 for case in &model.get_model().player[0].board {
                     if case.empty() == false {
                         let rect = Rect::new(case.x() * 30, case.y() * 30, 28, 28);
-                        texture_canvas
-                            .fill_rect(rect);
+                        texture_canvas.fill_rect(rect);
                     }
                 }
 

@@ -50,16 +50,31 @@ impl Board {
         self.into_iter().nth(index as usize).unwrap()
     }
 
+    // update the board according a given piece
     pub fn update_board(&mut self, piece: &Piece) {
         for case in piece.data() {
             self.get_case_borrow_mut(case.x, case.y).set_empty(false);
         }
+        //self.print_mat();
+    }
+
+    // remove full line from the board
+    pub fn remove_full_lines(&mut self) {
         for (line, full_line) in self.get_full_lines().iter().enumerate() {
             if *full_line {
                 self.remove_line(line as i32);
             }
         }
-        self.print_mat();
+    }
+
+    pub fn get_number_full_lines(&self) -> i32 {
+        let mut nb = 0;
+        for (_line, full_line) in self.get_full_lines().iter().enumerate() {
+            if *full_line {
+                nb += 1;
+            }
+        }
+        nb
     }
 
     fn get_full_lines(&self) -> [bool; crate::HEIGHT as usize] {

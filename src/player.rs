@@ -10,13 +10,20 @@ use crate::Piece;
 use crate::piece::PieceModel;
 
 pub struct Player {
-    pub pos_board: Rect, //location of the board on the main_window
+    pub pos_board: Rect,
+    //location of the board on the main_window
     pub board: Board,
     pub piece: Piece,
     init_randomizer: bool,
-    pieces: HashMap<u32, Piece>, //Lazy initialization of pieces
-                                 //stat: Stat, TODO -> implement score
-                                 //pos_stat: Rect, -> position des stats sur le
+    pieces: HashMap<u32, Piece>,
+    //Lazy initialization of pieces
+    //stat: Stat, TODO -> implement score
+    //pos_stat: Rect, -> position des stats sur le
+    pieces_generated: Vec<String>,
+    elapse_time: usize,
+    difficulties: Vec<f32>,
+    //level of the player
+    score: i64, // score of the player
 }
 
 impl<'a> Player {
@@ -27,16 +34,12 @@ impl<'a> Player {
             piece: Piece::new(),
             init_randomizer: false,
             pieces: HashMap::new(),
-        }
-    }
+            pieces_generated: vec![],
 
-    pub fn set_main_player() {}
-
-    pub fn set_player(player_i: i32, number_player: i32) {}
-
-    pub fn update_board(&mut self) {
-        for case in self.piece.data() {
-            (self.board.get_case_borrow_mut(case.x, case.y)).set_empty(false);
+            //USER SCORES
+            elapse_time: 0 as usize,
+            difficulties: vec![1.0, 0.8, 0.7, 0.6, 0.5],
+            score: 0,
         }
     }
 
@@ -72,11 +75,15 @@ impl<'a> Player {
                 for point in self.piece.data() {
                     if point.y + 1 >= crate::HEIGHT {
                         self.board.update_board(&self.piece);
+                        self.score += 100 * (self.board.get_number_full_lines() as i64);
+                        self.board.remove_full_lines();
                         self.re_init_piece();
                         return ResultUpdateModel::BottomBorder;
                     }
                     if self.board.get_case_borrow(point.x, point.y + 1).empty() == false {
                         self.board.update_board(&self.piece);
+                        self.score += 100 * (self.board.get_number_full_lines() as i64);
+                        self.board.remove_full_lines();
                         self.re_init_piece();
                         return ResultUpdateModel::CollisionPieceBottom;
                     }
@@ -113,47 +120,90 @@ impl<'a> Player {
                 }
             }
 
-            _ => {}
+            TetrisEvent::Time(x) => {
+                self.elapse_time += x;
+                let difficulty = self.difficulty();
+                if self.elapse_time > (difficulty * 1000.) as usize {
+                    for point in self.piece.data() {
+                        if point.y + 1 >= crate::HEIGHT {
+                            self.board.update_board(&self.piece);
+                            self.score += 100 * (self.board.get_number_full_lines() as i64);
+                            self.board.remove_full_lines();
+                            self.re_init_piece();
+                            return ResultUpdateModel::BottomBorder;
+                        }
+                        if self.board.get_case_borrow(point.x, point.y + 1).empty() == false {
+                            self.board.update_board(&self.piece);
+                            self.score += 100 * (self.board.get_number_full_lines() as i64);
+                            self.board.remove_full_lines();
+                            self.re_init_piece();
+                            return ResultUpdateModel::CollisionPieceBottom;
+                        }
+                    }
+                    self.piece.translate_down();
+                    self.elapse_time = 0;
+                }
+            }
         }
         ResultUpdateModel::Ok
+    }
+
+    fn difficulty(&self) -> f32 {
+        let mut difficulty = 0.;
+        if self.score >= 0 {
+            difficulty = self.difficulties[0];
+        }
+        if self.score > 500 {
+            difficulty = self.difficulties[1];
+        }
+        if self.score > 1000 {
+            difficulty = self.difficulties[2];
+        }
+        if self.score > 1500 {
+            difficulty = self.difficulties[3];
+        }
+        if self.score > 2000 {
+            difficulty = self.difficulties[4];
+        }
+        difficulty
     }
 
     fn init_randomizer(&mut self) {
         if self.init_randomizer == false {
             let mut p = Piece::new();
             p.set_data([
-                Point::from((0, 0)),
-                Point::from((0, 1)),
-                Point::from((0, 2)),
-                Point::from((0, 3)),
+                Point::from((4, 0)),
+                Point::from((4, 1)),
+                Point::from((4, 2)),
+                Point::from((4, 3)),
             ]);
             p.set_name(String::from("barre"));
             self.pieces.insert(0, p.clone());
 
             p.set_name(String::from("square"));
             p.set_data([
-                Point::from((0, 0)),
-                Point::from((0, 1)),
-                Point::from((1, 0)),
-                Point::from((1, 1)),
+                Point::from((4, 0)),
+                Point::from((4, 1)),
+                Point::from((5, 0)),
+                Point::from((5, 1)),
             ]);
             self.pieces.insert(1, p.clone());
 
             p.set_name(String::from("eclair"));
             p.set_data([
-                Point::from((0, 1)),
-                Point::from((1, 0)),
-                Point::from((2, 0)),
-                Point::from((1, 1)),
+                Point::from((4, 1)),
+                Point::from((5, 0)),
+                Point::from((6, 0)),
+                Point::from((5, 1)),
             ]);
             self.pieces.insert(2, p.clone());
 
             p.set_name(String::from("coude"));
             p.set_data([
-                Point::from((0, 0)),
-                Point::from((1, 0)),
-                Point::from((2, 0)),
-                Point::from((1, 1)),
+                Point::from((4, 0)),
+                Point::from((5, 0)),
+                Point::from((6, 0)),
+                Point::from((5, 1)),
             ]);
             self.pieces.insert(3, p.clone());
         }
@@ -161,7 +211,19 @@ impl<'a> Player {
 
     fn get_random_piece(&mut self) -> Piece {
         self.init_randomizer();
-        let i: u32 = rand::random();
+        let mut i: u32 = rand::random();
+
+        let len = self.pieces_generated.len();
+        let mut start = 0;
+        if len >= 3 {
+            start = len - 3;
+        }
+        while self.pieces_generated[start..len].contains(self.pieces.get(&(i % 4)).unwrap().name()) {
+            i = rand::random();
+        }
+        self.pieces_generated.insert(self.pieces_generated.len(),
+                                     self.pieces.get(&(i % 4)).unwrap().name().to_string());
+
         return self.pieces.get(&(i % 4)).unwrap().clone();
     }
 
