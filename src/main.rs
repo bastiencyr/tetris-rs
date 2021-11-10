@@ -47,8 +47,6 @@ fn main() -> Result<(), String> {
     background.copy_back_to_texture(&mut canvas, &mut main_texture);
 
     let mut controller = Controller::new(canvas, main_texture, background);
-
-    //let mut tetris = Tetris::new(canvas, main_texture, &background); //canvas is moved , so it is not accessible anymore
     controller.update_view();
 
     let timer = sdl_context.timer()?;

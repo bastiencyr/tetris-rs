@@ -14,6 +14,8 @@ pub struct Player {
     //location of the board on the main_window
     pub board: Board,
     pub piece: Piece,
+    pub ghost_piece: Piece,
+    // The ghost piece printed at the bottom
     init_randomizer: bool,
     pieces: HashMap<u32, Piece>,
     //Lazy initialization of pieces
@@ -27,18 +29,23 @@ pub struct Player {
 }
 
 impl<'a> Player {
+    pub fn score(&self) -> i64 {
+        return self.score;
+    }
+
     pub fn new() -> Player {
         Player {
             pos_board: Rect::new(0, 0, 0, 0),
             board: Board::new(),
             piece: Piece::new(),
+            ghost_piece: Piece::new(),
             init_randomizer: false,
             pieces: HashMap::new(),
             pieces_generated: vec![],
 
             //USER SCORES
             elapse_time: 0 as usize,
-            difficulties: vec![1.0, 0.8, 0.7, 0.6, 0.5],
+            difficulties: vec![1.0, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3], // The less the number is, the more the difficulty is
             score: 0,
         }
     }
@@ -72,23 +79,18 @@ impl<'a> Player {
             }
 
             TetrisEvent::Bottom => {
-                for point in self.piece.data() {
-                    if point.y + 1 >= crate::HEIGHT {
-                        self.board.update_board(&self.piece);
-                        self.score += 100 * (self.board.get_number_full_lines() as i64);
-                        self.board.remove_full_lines();
-                        self.re_init_piece();
-                        return ResultUpdateModel::BottomBorder;
-                    }
-                    if self.board.get_case_borrow(point.x, point.y + 1).empty() == false {
-                        self.board.update_board(&self.piece);
-                        self.score += 100 * (self.board.get_number_full_lines() as i64);
-                        self.board.remove_full_lines();
-                        self.re_init_piece();
-                        return ResultUpdateModel::CollisionPieceBottom;
-                    }
+                let result = self.check_bottom(&self.piece);
+                if result == ResultUpdateModel::BottomBorder
+                    || result == ResultUpdateModel::CollisionPieceBottom {
+                    self.board.update_board(&self.piece);
+                    self.score += 100 * (self.board.get_number_full_lines() as i64);
+                    self.board.remove_full_lines();
+                    self.re_init_piece();
                 }
-                self.piece.translate_down();
+                if result == ResultUpdateModel::Ok {
+                    self.piece.translate_down();
+                }
+                return result;
             }
 
             TetrisEvent::Up => {
@@ -124,29 +126,48 @@ impl<'a> Player {
                 self.elapse_time += x;
                 let difficulty = self.difficulty();
                 if self.elapse_time > (difficulty * 1000.) as usize {
-                    for point in self.piece.data() {
-                        if point.y + 1 >= crate::HEIGHT {
-                            self.board.update_board(&self.piece);
-                            self.score += 100 * (self.board.get_number_full_lines() as i64);
-                            self.board.remove_full_lines();
-                            self.re_init_piece();
-                            return ResultUpdateModel::BottomBorder;
-                        }
-                        if self.board.get_case_borrow(point.x, point.y + 1).empty() == false {
-                            self.board.update_board(&self.piece);
-                            self.score += 100 * (self.board.get_number_full_lines() as i64);
-                            self.board.remove_full_lines();
-                            self.re_init_piece();
-                            return ResultUpdateModel::CollisionPieceBottom;
-                        }
+                    let result = self.check_bottom(&self.piece);
+                    if result == ResultUpdateModel::BottomBorder
+                        || result == ResultUpdateModel::CollisionPieceBottom {
+                        self.board.update_board(&self.piece);
+                        self.score += 100 * (self.board.get_number_full_lines() as i64);
+                        self.board.remove_full_lines();
+                        self.re_init_piece();
                     }
-                    self.piece.translate_down();
+                    if result == ResultUpdateModel::Ok {
+                        self.piece.translate_down();
+                    }
                     self.elapse_time = 0;
+                    return result;
                 }
             }
         }
+        self.update_ghost_piece();
         ResultUpdateModel::Ok
     }
+
+    //update ghost piece according the current piece
+    fn update_ghost_piece(&mut self) {
+        let mut copy_piece = self.piece.clone();
+        while self.check_bottom(&copy_piece) == ResultUpdateModel::Ok {
+            copy_piece.translate_down();
+        }
+        self.ghost_piece = copy_piece; // update ghost piece
+    }
+
+    //check if piece can move to bottom (one movement only)
+    fn check_bottom(&self, piece: &Piece) -> ResultUpdateModel {
+        for point in piece.data() {
+            if point.y + 1 >= crate::HEIGHT {
+                return ResultUpdateModel::BottomBorder;
+            }
+            if self.board.get_case_borrow(point.x, point.y + 1).empty() == false {
+                return ResultUpdateModel::CollisionPieceBottom;
+            }
+        }
+        return ResultUpdateModel::Ok;
+    }
+
 
     fn difficulty(&self) -> f32 {
         let mut difficulty = 0.;

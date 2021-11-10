@@ -69,6 +69,11 @@ impl TetrisView<'_> {
             });
     }
 
+    pub fn draw_score(&self, model: &TetrisModel) {
+        println!("{}", model.player[0].score())
+    }
+
+    //NEVER USED
     pub fn draw_piece(&mut self, piece: &Piece) {
         //on redessine le fond
         let texture_creator = self.canvas.texture_creator();
@@ -120,6 +125,7 @@ impl View for TetrisView<'_> {
     fn update_v(self: &mut Self, model: &TetrisModel) {
         self.canvas.clear();
         self.draw_board(model);
+        self.draw_score(model);
         self.canvas
             .copy(&self.main_texture, None, None)
             .expect("Cant copy");

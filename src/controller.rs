@@ -32,16 +32,18 @@ pub struct Controller <'a>{
     pub model: TetrisModel,
 }
 
-impl Controller <'_>{
+//not the right way to initialize a controller. The view and the model must be registered to
+//the controller
+impl Controller<'_> {
     pub fn new<'a>(
         canvas: Canvas<Window>,
         texture: Texture<'a>,
         background: Background<'a>,
-    ) -> Controller <'a> {
+    ) -> Controller<'a> {
         Controller {
             view2: vec![
-            Box::new(TetrisView::new(canvas, texture, background))
-                ],
+                Box::new(TetrisView::new(canvas, texture, background))
+            ],
             model: TetrisModel::new(),
         }
     }
