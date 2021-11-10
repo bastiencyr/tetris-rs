@@ -53,29 +53,19 @@ impl<'a> Player {
     pub fn update_model(&mut self, event: TetrisEvent) -> ResultUpdateModel {
         match event {
             TetrisEvent::Right => {
-                //box is a keyword in rust
-                for point in self.piece.data() {
-                    if point.x + 1 >= crate::WIDTH {
-                        return ResultUpdateModel::RightBorder;
-                    }
-                    if self.board.get_case_borrow(point.x + 1, point.y).empty() == false {
-                        return ResultUpdateModel::CollisionPiece;
-                    }
+                let result = self.check_right(&self.piece);
+                if result == ResultUpdateModel::Ok {
+                    self.piece.translate_right();
                 }
-                self.piece.translate_right();
+                return result;
             }
 
             TetrisEvent::Left => {
-                //box is a keyword in rust
-                for point in self.piece.data() {
-                    if point.x - 1 < 0 {
-                        return ResultUpdateModel::RightBorder;
-                    }
-                    if self.board.get_case_borrow(point.x - 1, point.y).empty() == false {
-                        return ResultUpdateModel::CollisionPiece;
-                    }
+                let result = self.check_left(&self.piece);
+                if result == ResultUpdateModel::Ok {
+                    self.piece.translate_left();
                 }
-                self.piece.translate_left();
+                return result;
             }
 
             TetrisEvent::Bottom => {
@@ -95,25 +85,11 @@ impl<'a> Player {
             }
 
             TetrisEvent::Up => {
-                let rotate_piece = self.piece.rotate_right();
-                for point in rotate_piece.data() {
-                    if point.x < 0 {
-                        return ResultUpdateModel::LeftBorder;
-                    }
-                    if point.x >= crate::WIDTH {
-                        return ResultUpdateModel::RightBorder;
-                    }
-                    if point.y >= crate::HEIGHT {
-                        return ResultUpdateModel::BottomBorder;
-                    }
-                    if point.y < 0 {
-                        return ResultUpdateModel::BottomBorder;
-                    }
-                    if self.board.get_case_borrow(point.x, point.y).empty() == false {
-                        return ResultUpdateModel::CollisionPiece;
-                    }
+                let result = self.check_up(&self.piece);
+                if result == ResultUpdateModel::Ok {
+                    self.piece = self.piece.rotate_right();
                 }
-                self.piece = rotate_piece;
+                return result;
             }
 
             TetrisEvent::Space => {
@@ -165,6 +141,52 @@ impl<'a> Player {
             }
             if self.board.get_case_borrow(point.x, point.y + 1).empty() == false {
                 return ResultUpdateModel::CollisionPieceBottom;
+            }
+        }
+        return ResultUpdateModel::Ok;
+    }
+
+    fn check_right(&self, piece: &Piece) -> ResultUpdateModel {
+        for point in piece.data() {
+            if point.x + 1 >= crate::WIDTH {
+                return ResultUpdateModel::RightBorder;
+            }
+            if self.board.get_case_borrow(point.x + 1, point.y).empty() == false {
+                return ResultUpdateModel::CollisionPiece;
+            }
+        }
+        return ResultUpdateModel::Ok;
+    }
+
+    fn check_left(&self, piece: &Piece) -> ResultUpdateModel {
+        for point in piece.data() {
+            if point.x - 1 < 0 {
+                return ResultUpdateModel::RightBorder;
+            }
+            if self.board.get_case_borrow(point.x - 1, point.y).empty() == false {
+                return ResultUpdateModel::CollisionPiece;
+            }
+        }
+        return ResultUpdateModel::Ok;
+    }
+
+    fn check_up(&self, piece: &Piece) -> ResultUpdateModel {
+        let rotate_piece = self.piece.rotate_right();
+        for point in rotate_piece.data() {
+            if point.x < 0 {
+                return ResultUpdateModel::LeftBorder;
+            }
+            if point.x >= crate::WIDTH {
+                return ResultUpdateModel::RightBorder;
+            }
+            if point.y >= crate::HEIGHT {
+                return ResultUpdateModel::BottomBorder;
+            }
+            if point.y < 0 {
+                return ResultUpdateModel::BottomBorder;
+            }
+            if self.board.get_case_borrow(point.x, point.y).empty() == false {
+                return ResultUpdateModel::CollisionPiece;
             }
         }
         return ResultUpdateModel::Ok;

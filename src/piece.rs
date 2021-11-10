@@ -10,7 +10,7 @@ pub trait PieceModel {
     fn translate_right(&mut self) -> Self;
     fn translate_left(&mut self) -> Self;
     fn translate_down(&mut self) -> Self;
-    fn rotate_right(&mut self) -> Piece;
+    fn rotate_right(&self) -> Piece;
 
     // SETTERS //
     fn set_name(&mut self, name: String);
@@ -100,7 +100,7 @@ impl PieceModel for Piece {
         copy
     }
 
-    fn rotate_right(&mut self) -> Piece {
+    fn rotate_right(&self) -> Piece {
         let mut copy = self.clone();
         copy.old_data = copy.data;
 
