@@ -81,7 +81,8 @@ impl<'a> Player {
             TetrisEvent::Bottom => {
                 let result = self.check_bottom(&self.piece);
                 if result == ResultUpdateModel::BottomBorder
-                    || result == ResultUpdateModel::CollisionPieceBottom {
+                    || result == ResultUpdateModel::CollisionPieceBottom
+                {
                     self.board.update_board(&self.piece);
                     self.score += 100 * (self.board.get_number_full_lines() as i64);
                     self.board.remove_full_lines();
@@ -128,7 +129,8 @@ impl<'a> Player {
                 if self.elapse_time > (difficulty * 1000.) as usize {
                     let result = self.check_bottom(&self.piece);
                     if result == ResultUpdateModel::BottomBorder
-                        || result == ResultUpdateModel::CollisionPieceBottom {
+                        || result == ResultUpdateModel::CollisionPieceBottom
+                    {
                         self.board.update_board(&self.piece);
                         self.score += 100 * (self.board.get_number_full_lines() as i64);
                         self.board.remove_full_lines();
@@ -167,7 +169,6 @@ impl<'a> Player {
         }
         return ResultUpdateModel::Ok;
     }
-
 
     fn difficulty(&self) -> f32 {
         let mut difficulty = 0.;
@@ -239,11 +240,14 @@ impl<'a> Player {
         if len >= 3 {
             start = len - 3;
         }
-        while self.pieces_generated[start..len].contains(self.pieces.get(&(i % 4)).unwrap().name()) {
+        while self.pieces_generated[start..len].contains(self.pieces.get(&(i % 4)).unwrap().name())
+        {
             i = rand::random();
         }
-        self.pieces_generated.insert(self.pieces_generated.len(),
-                                     self.pieces.get(&(i % 4)).unwrap().name().to_string());
+        self.pieces_generated.insert(
+            self.pieces_generated.len(),
+            self.pieces.get(&(i % 4)).unwrap().name().to_string(),
+        );
 
         return self.pieces.get(&(i % 4)).unwrap().clone();
     }
