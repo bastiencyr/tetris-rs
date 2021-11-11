@@ -1,14 +1,14 @@
 use std::borrow::BorrowMut;
+use std::rc::Rc;
 
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
-use sdl2::render::{Canvas, Texture};
+use sdl2::render::{BlendMode, Canvas, Texture};
 use sdl2::video::Window;
 
 use ui::background::Background;
 
 use crate::model::{Model, TetrisModel};
-use crate::piece::Piece;
 
 pub trait View {
     fn update_v(self: &mut Self, model: &TetrisModel);
@@ -17,14 +17,18 @@ pub trait View {
 pub struct TetrisView<'a> {
     pub main_texture: Texture<'a>,
     pub canvas: Canvas<Window>,
-    pub background: Background<'a>,
+    //Background
+    pub background: Rc<Background<'a>>,
 }
 
 impl TetrisView<'_> {
     pub fn new<'a>(
         canvas: Canvas<Window>,
         texture: Texture<'a>,
-        background: Background<'a>,
+        //background must be behind an rc for with_texture_canvas function. I think
+        //that with_texture_canvas take ownership of self and so on the whole structure.
+        //It may be solve by edition 2021...
+        background: Rc<Background<'a>>,
     ) -> TetrisView<'a> {
         TetrisView {
             canvas,
@@ -34,15 +38,13 @@ impl TetrisView<'_> {
     }
 
     pub fn draw_board(&mut self, model: &TetrisModel) {
-        let texture_creator = self.canvas.texture_creator();
-        //TODO its juste a workaround. I make a copy of background
-        let back_workaround = Background::new(&mut self.canvas, &texture_creator);
+        let back = Rc::clone(&self.background);
 
         self.canvas
             .with_texture_canvas(self.main_texture.borrow_mut(), |texture_canvas| {
                 //on recopie le fond
                 texture_canvas
-                    .copy(&back_workaround.background_texture, None, None)
+                    .copy(&back.background_texture, None, None)
                     .expect("Cant copy");
 
                 // on recopie les pièces déjà présente
@@ -65,59 +67,23 @@ impl TetrisView<'_> {
                         .expect("Rectange pas dessinable");
                 }
 
+                //Ghost piece
+                texture_canvas.set_blend_mode(BlendMode::Blend);
+                texture_canvas.set_draw_color(Color::RGBA(43, 43, 100, 80));
+                for case in model.get_model().player[0].ghost_piece().data() {
+                    let x = case.x() as i32 * 30;
+                    let y = case.y() as i32 * 30;
+                    texture_canvas
+                        .fill_rect(Rect::from((x, y, 28, 28)))
+                        .expect("Rectange pas dessinable");
+                }
+
                 texture_canvas.set_draw_color(sdl2::pixels::Color::RGBA(0, 0, 0, 255));
             });
     }
 
     pub fn draw_score(&self, model: &TetrisModel) {
-        println!("{}", model.player[0].score())
-    }
-
-    //NEVER USED
-    pub fn draw_piece(&mut self, piece: &Piece) {
-        //on redessine le fond
-        let texture_creator = self.canvas.texture_creator();
-        //TODO its juste a workaround. I make a copy of background
-        let back_workaround = Background::new(&mut self.canvas, &texture_creator);
-        for pt in piece.old_data() {
-            let rect = Rect::new(pt.x * 30, pt.y * 30, 28, 28);
-            self.canvas
-                .with_texture_canvas(self.main_texture.borrow_mut(), |texture_canvas| {
-                    texture_canvas
-                        .copy(&back_workaround.background_texture, rect, rect)
-                        .expect("Cant copy");
-                });
-            self.canvas
-                .copy(&self.main_texture, rect, rect)
-                .expect("Cant copy");
-        }
-
-        self.draw(&piece);
-        // on copie uniquement les pièces sur notre texture.
-        for pt in piece.data() {
-            //println!("pt x, {}, pt y: {}", pt.x, pt.y);
-            let rect = Rect::new(pt.x * 30, pt.y * 30, 28, 28);
-            self.canvas
-                .copy(&self.main_texture, rect, rect)
-                .expect("Cant copy");
-        }
-    }
-
-    fn draw(&mut self, piece: &Piece) {
-        //println!("{:#?}::\n{:#?}", old_piece, *self);
-        self.canvas
-            .with_texture_canvas(self.main_texture.borrow_mut(), |texture_p| {
-                texture_p.set_draw_color(sdl2::pixels::Color::RGBA(63, 63, 63, 255));
-                for case in piece.data() {
-                    let x = case.x() as i32 * 30;
-                    let y = case.y() as i32 * 30;
-                    texture_p
-                        .fill_rect(Rect::from((x, y, 28, 28)))
-                        .expect("Rectange pas dessinable");
-                }
-                texture_p.set_draw_color(sdl2::pixels::Color::RGBA(0, 0, 0, 255));
-            });
-        //self.canvas.copy(&self.main_texture, None, None).expect("Cant copy");
+        //println!("{}", model.player[0].score())
     }
 }
 

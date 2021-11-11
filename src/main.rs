@@ -1,5 +1,7 @@
 extern crate sdl2;
 
+use std::rc::Rc;
+
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 
@@ -43,7 +45,7 @@ fn main() -> Result<(), String> {
         .unwrap();
 
     let texture_creator_back = canvas.texture_creator();
-    let background = Background::new(&mut canvas, &texture_creator_back);
+    let background = Rc::new(Background::new(&mut canvas, &texture_creator_back));
     background.copy_back_to_texture(&mut canvas, &mut main_texture);
 
     let mut controller = Controller::new(canvas, main_texture, background);

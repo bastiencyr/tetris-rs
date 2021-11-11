@@ -33,6 +33,7 @@ impl<'a> Player {
         return self.score;
     }
 
+    //CONSTRUCTOR
     pub fn new() -> Player {
         Player {
             pos_board: Rect::new(0, 0, 0, 0),
@@ -50,6 +51,12 @@ impl<'a> Player {
         }
     }
 
+    //GETTER
+    pub fn ghost_piece(&self) -> &Piece {
+        &self.ghost_piece
+    }
+
+    //Update the model, particularly, the position of the piece on the board.
     pub fn update_model(&mut self, event: TetrisEvent) -> ResultUpdateModel {
         match event {
             TetrisEvent::Right => {
@@ -124,7 +131,7 @@ impl<'a> Player {
         ResultUpdateModel::Ok
     }
 
-    //update ghost piece according the current piece
+    //update ghost piece according to the current piece
     fn update_ghost_piece(&mut self) {
         let mut copy_piece = self.piece.clone();
         while self.check_bottom(&copy_piece) == ResultUpdateModel::Ok {
@@ -171,7 +178,7 @@ impl<'a> Player {
     }
 
     fn check_up(&self, piece: &Piece) -> ResultUpdateModel {
-        let rotate_piece = self.piece.rotate_right();
+        let rotate_piece = piece.rotate_right();
         for point in rotate_piece.data() {
             if point.x < 0 {
                 return ResultUpdateModel::LeftBorder;

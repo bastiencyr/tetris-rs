@@ -1,4 +1,5 @@
 use std::borrow::Borrow;
+use std::rc::Rc;
 
 use sdl2::render::{Canvas, Texture};
 use sdl2::video::Window;
@@ -38,7 +39,7 @@ impl Controller<'_> {
     pub fn new<'a>(
         canvas: Canvas<Window>,
         texture: Texture<'a>,
-        background: Background<'a>,
+        background: Rc<Background<'a>>,
     ) -> Controller<'a> {
         Controller {
             view2: vec![

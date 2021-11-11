@@ -20,7 +20,6 @@ pub mod background {
             canvas: &mut Canvas<Window>,
             texture_creator: &'a TextureCreator<WindowContext>,
         ) -> Background<'a> {
-            // let (x,y) = texture_creator.size();
             let texture = texture_creator
                 .create_texture_target(texture_creator.default_pixel_format(), 300, 600)
                 .unwrap();
