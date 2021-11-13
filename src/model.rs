@@ -12,6 +12,9 @@ pub struct TetrisModel {
 }
 
 impl TetrisModel {
+    pub fn init<'a>() -> TetrisModel {
+        TetrisModel { player: vec![] }
+    }
     pub fn new<'a>() -> TetrisModel {
         TetrisModel {
             player: vec![Player::new()],
@@ -21,7 +24,6 @@ impl TetrisModel {
 
 impl Model for TetrisModel {
     fn update_m(self: &mut Self, event: TetrisEvent) {
-        // la logique du modèle est implémentée dans un autre fichier
         self.player[0].update_model(event);
     }
 
@@ -36,6 +38,7 @@ pub enum ResultUpdateModel {
     RightBorder,
     LeftBorder,
     BottomBorder,
+    UpBorder,
     Ok,
     CollisionPiece,
     CollisionPieceBottom,

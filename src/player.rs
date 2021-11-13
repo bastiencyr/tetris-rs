@@ -6,8 +6,8 @@ use sdl2::rect::Rect;
 use crate::Board;
 use crate::controller::TetrisEvent;
 use crate::model::ResultUpdateModel;
+use crate::piece::{PieceModel, PieceName};
 use crate::Piece;
-use crate::piece::PieceModel;
 
 pub struct Player {
     pub pos_board: Rect,
@@ -21,7 +21,7 @@ pub struct Player {
     //Lazy initialization of pieces
     //stat: Stat, TODO -> implement score
     //pos_stat: Rect, -> position des stats sur le
-    pieces_generated: Vec<String>,
+    pieces_generated: Vec<PieceName>,
     elapse_time: usize,
     difficulties: Vec<f32>,
     //level of the player
@@ -92,9 +92,32 @@ impl<'a> Player {
             }
 
             TetrisEvent::Up => {
-                let result = self.check_up(&self.piece);
+                let mut result = self.check_up(&self.piece);
                 if result == ResultUpdateModel::Ok {
                     self.piece = self.piece.rotate_right();
+                    return result;
+                }
+
+                //if rightBorder, move left until found a place to rotate.
+                let mut cp = self.piece.clone();
+                while result == ResultUpdateModel::RightBorder {
+                    cp.translate_left();
+                    result = self.check_up(&cp);
+                }
+                if result == ResultUpdateModel::Ok {
+                    self.piece = cp.rotate_right();
+                    return result;
+                }
+
+                //if leftBorder, move left until found a place to rotate.
+                cp = self.piece.clone();
+                while result == ResultUpdateModel::LeftBorder {
+                    cp.translate_right();
+                    result = self.check_up(&cp);
+                }
+                if result == ResultUpdateModel::Ok {
+                    self.piece = cp.rotate_right();
+                    return result;
                 }
                 return result;
             }
@@ -190,7 +213,7 @@ impl<'a> Player {
                 return ResultUpdateModel::BottomBorder;
             }
             if point.y < 0 {
-                return ResultUpdateModel::BottomBorder;
+                return ResultUpdateModel::UpBorder;
             }
             if self.board.get_case_borrow(point.x, point.y).empty() == false {
                 return ResultUpdateModel::CollisionPiece;
@@ -228,10 +251,10 @@ impl<'a> Player {
                 Point::from((4, 2)),
                 Point::from((4, 3)),
             ]);
-            p.set_name(String::from("barre"));
+            p.set_name(PieceName::Barre);
             self.pieces.insert(0, p.clone());
 
-            p.set_name(String::from("square"));
+            p.set_name(PieceName::Square);
             p.set_data([
                 Point::from((4, 0)),
                 Point::from((4, 1)),
@@ -240,7 +263,7 @@ impl<'a> Player {
             ]);
             self.pieces.insert(1, p.clone());
 
-            p.set_name(String::from("eclair"));
+            p.set_name(PieceName::Eclair);
             p.set_data([
                 Point::from((4, 1)),
                 Point::from((5, 0)),
@@ -249,7 +272,7 @@ impl<'a> Player {
             ]);
             self.pieces.insert(2, p.clone());
 
-            p.set_name(String::from("coude"));
+            p.set_name(PieceName::Te);
             p.set_data([
                 Point::from((4, 0)),
                 Point::from((5, 0)),
@@ -257,34 +280,41 @@ impl<'a> Player {
                 Point::from((5, 1)),
             ]);
             self.pieces.insert(3, p.clone());
+
+            p.set_name(PieceName::Coude);
+            p.set_data([
+                Point::from((4, 0)),
+                Point::from((5, 0)),
+                Point::from((5, 1)),
+                Point::from((5, 2)),
+            ]);
+            self.pieces.insert(4, p.clone());
         }
     }
 
     fn get_random_piece(&mut self) -> Piece {
         self.init_randomizer();
         let mut i: u32 = rand::random();
+        let num_pieces = self.pieces.len() as u32;
 
         let len = self.pieces_generated.len();
         let mut start = 0;
-        if len >= 3 {
-            start = len - 3;
+        if len >= 2 {
+            start = len - 2;
         }
-        while self.pieces_generated[start..len].contains(self.pieces.get(&(i % 4)).unwrap().name())
-        {
+        let mut piece = self.pieces.get(&(i % num_pieces)).unwrap();
+        while self.pieces_generated[start..len].contains(piece.name()) {
             i = rand::random();
+            piece = self.pieces.get(&(i % num_pieces)).unwrap();
         }
-        self.pieces_generated.insert(
-            self.pieces_generated.len(),
-            self.pieces.get(&(i % 4)).unwrap().name().to_string(),
-        );
+        self.pieces_generated.push(piece.name().clone());
 
-        return self.pieces.get(&(i % 4)).unwrap().clone();
+        return piece.clone();
     }
 
     fn re_init_piece(&mut self) {
         let random_piece = self.get_random_piece();
         self.piece.set_data(*random_piece.data());
-        self.piece.set_name(random_piece.name().to_string());
-        self.piece.set_old_data(*random_piece.old_data());
+        self.piece.set_name(*random_piece.name());
     }
 }

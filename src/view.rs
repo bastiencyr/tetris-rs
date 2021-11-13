@@ -3,8 +3,8 @@ use std::rc::Rc;
 
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
-use sdl2::render::{BlendMode, Canvas, Texture};
-use sdl2::video::Window;
+use sdl2::render::{BlendMode, Canvas, Texture, TextureCreator};
+use sdl2::video::{Window, WindowContext};
 
 use ui::background::Background;
 
@@ -42,15 +42,13 @@ impl TetrisView<'_> {
 
         self.canvas
             .with_texture_canvas(self.main_texture.borrow_mut(), |texture_canvas| {
-                //on recopie le fond
+                //Copy the background
                 texture_canvas
                     .copy(&back.background_texture, None, None)
                     .expect("Cant copy");
 
-                // on recopie les pièces déjà présente
+                // Copy already present piece with our iterator
                 texture_canvas.set_draw_color(Color::RGBA(63, 63, 63, 255));
-
-                //we use our iterator here
                 for case in &model.get_model().player[0].board {
                     if case.empty() == false {
                         let rect = Rect::new(case.x() * 30, case.y() * 30, 28, 28);
@@ -58,7 +56,7 @@ impl TetrisView<'_> {
                     }
                 }
 
-                // on recopie la pièce qui tombait
+                // Copy the current piece falling
                 for case in model.get_model().player[0].piece.data() {
                     let x = case.x() as i32 * 30;
                     let y = case.y() as i32 * 30;

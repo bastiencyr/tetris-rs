@@ -1,8 +1,8 @@
 use std::borrow::Borrow;
 use std::rc::Rc;
 
-use sdl2::render::{Canvas, Texture};
-use sdl2::video::Window;
+use sdl2::render::{Canvas, Texture, TextureCreator};
+use sdl2::video::{Window, WindowContext};
 
 use ui::background::Background;
 
@@ -27,31 +27,32 @@ pub trait TraitController {
 }
 
 // Notre controller générique
-pub struct Controller <'a>{
+pub struct Controller<'a> {
     pub view2: Vec<Box<dyn View + 'a>>,
     //pub view: T,
     pub model: TetrisModel,
 }
 
-//not the right way to initialize a controller. The view and the model must be registered to
-//the controller
-impl Controller<'_> {
-    pub fn new<'a>(
-        canvas: Canvas<Window>,
-        texture: Texture<'a>,
-        background: Rc<Background<'a>>,
-    ) -> Controller<'a> {
+impl<'a> Controller<'a> {
+    pub fn new() -> Controller<'a> {
         Controller {
-            view2: vec![
-                Box::new(TetrisView::new(canvas, texture, background))
-            ],
-            model: TetrisModel::new(),
+            view2: vec![],
+            model: TetrisModel::init(),
         }
+    }
+
+    pub fn set_model(&mut self, model: TetrisModel) {
+        self.model = model;
+    }
+
+    // 'a MUST be given here
+    pub fn register_view(&mut self, view: Box<dyn View + 'a>) {
+        self.view2.append(&mut vec![view]);
     }
 }
 
 // on implemente le trait controller complet
-impl TraitController for Controller <'_> {
+impl TraitController for Controller<'_> {
     fn update_view(&mut self) {
         for view in self.view2.iter_mut() {
             view.update_v(self.model.borrow());

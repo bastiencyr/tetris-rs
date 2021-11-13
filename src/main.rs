@@ -4,13 +4,17 @@ use std::rc::Rc;
 
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
+use sdl2::render::{TextureCreator, WindowCanvas};
+use sdl2::video::WindowContext;
+use sdl2::VideoSubsystem;
 
-//la librairie est linké donc pas besoin de limporter comme un module
 use ui::background::Background;
 
 use crate::board::Board;
 use crate::controller::{Controller, TetrisEvent, TraitController};
+use crate::model::TetrisModel;
 use crate::piece::Piece;
+use crate::view::TetrisView;
 
 const HEIGHT: i32 = 20;
 const WIDTH: i32 = 10;
@@ -26,30 +30,15 @@ fn main() -> Result<(), String> {
     let sdl_context = sdl2::init()?;
     let video_subsystem = sdl_context.video()?;
 
-    let window = video_subsystem
-        .window("SDL2", 300, 600)
-        .position_centered()
-        .build()
-        .map_err(|e| e.to_string())?;
-
-    let mut canvas = window
-        .into_canvas()
-        .software()
-        //.accelerated()
-        //.present_vsync()
-        .build()
-        .map_err(|e| e.to_string())?;
-    let main_creator = canvas.texture_creator();
-    let mut main_texture = main_creator
-        .create_texture_target(main_creator.default_pixel_format(), 300, 600)
+    let (mut canvas, creator) = init_canvas(&video_subsystem);
+    let main_texture = creator
+        .create_texture_target(creator.default_pixel_format(), 300, 600)
         .unwrap();
 
-    let texture_creator_back = canvas.texture_creator();
-    let background = Rc::new(Background::new(&mut canvas, &texture_creator_back));
-    background.copy_back_to_texture(&mut canvas, &mut main_texture);
-
-    let mut controller = Controller::new(canvas, main_texture, background);
-    controller.update_view();
+    let background = Rc::new(Background::new(&mut canvas, &creator));
+    let mut controller = Controller::new();
+    controller.set_model(TetrisModel::new());
+    controller.register_view(Box::new(TetrisView::new(canvas, main_texture, background)));
 
     let timer = sdl_context.timer()?;
     let mut event_pump = sdl_context.event_pump()?;
@@ -116,4 +105,25 @@ fn main() -> Result<(), String> {
         }
     }
     Ok(())
+}
+
+fn init_canvas(video_subsystem: &VideoSubsystem) -> (WindowCanvas, TextureCreator<WindowContext>) {
+    let window = video_subsystem
+        .window("SDL2", 300, 600)
+        .position_centered()
+        .build()
+        .map_err(|e| e.to_string())
+        .unwrap();
+
+    let canvas = window
+        .into_canvas()
+        .software()
+        //.accelerated()
+        //.present_vsync()
+        .build()
+        .map_err(|e| e.to_string())
+        .unwrap();
+
+    let creator = canvas.texture_creator();
+    (canvas, creator)
 }
