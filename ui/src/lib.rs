@@ -1,6 +1,7 @@
 pub mod background {
     extern crate sdl2;
 
+    use sdl2::pixels::Color;
     use sdl2::rect::Point;
     use sdl2::render::Canvas;
     use sdl2::render::Texture;
@@ -12,7 +13,8 @@ pub mod background {
 
     pub struct Background<'a> {
         pub background_texture: Texture<'a>,
-        color: [u8; 4],
+        color: Color,
+        color_back: Color,
     }
 
     impl Background<'_> {
@@ -25,20 +27,37 @@ pub mod background {
                 .unwrap();
             let mut back = Background {
                 background_texture: texture,
-                color: [0, 0, 63, 255], // la couleur de fond + gamma
+                color: sdl2::pixels::Color::RGBA(63, 63, 63, 255), // la couleur de fond + gamma
+                color_back: sdl2::pixels::Color::RGBA(63, 63, 63, 255), // la vraie couleure de fond
             };
             back.draw(canvas);
             back
         }
 
+        pub fn set_color(&mut self, color: Color, canvas: &mut Canvas<Window>) {
+            self.color = color;
+            self.draw(canvas);
+        }
+
+        pub fn set_color_back(&mut self, color: Color, canvas: &mut Canvas<Window>) {
+            self.color_back = color;
+            self.draw(canvas);
+        }
+
         fn draw(&mut self, canvas: &mut Canvas<Window>) {
             let (x, y) = canvas.window().size();
             //let color = self.color;
+            // on 2015 edition this code will not work because in 2015 edition, closure capture the
+            // whole structure even if you acceed only one member of your struct
+            // here self.background_texture is borrow as mutable -> so self is borrow as mutable in 2015 edition
+            // and self.color capture color as immutable -> so capture whole self as immutable in 2015 edition
             canvas
                 .with_texture_canvas(&mut self.background_texture, |texture_canvas| {
                     //initialiser  la couleur de fond ici avec color
+                    texture_canvas.set_draw_color(self.color_back);
+                    texture_canvas.clear();
 
-                    texture_canvas.set_draw_color(sdl2::pixels::Color::RGBA(63, 63, 63, 255));
+                    texture_canvas.set_draw_color(self.color);
 
                     let x = x as i32;
                     let y = y as i32;

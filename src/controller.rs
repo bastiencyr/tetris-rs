@@ -1,13 +1,7 @@
 use std::borrow::Borrow;
-use std::rc::Rc;
-
-use sdl2::render::{Canvas, Texture, TextureCreator};
-use sdl2::video::{Window, WindowContext};
-
-use ui::background::Background;
 
 use crate::model::{Model, TetrisModel};
-use crate::view::{TetrisView, View};
+use crate::view::View;
 
 //Contient le controlleur
 
@@ -46,8 +40,9 @@ impl<'a> Controller<'a> {
     }
 
     // 'a MUST be given here
-    pub fn register_view(&mut self, view: Box<dyn View + 'a>) {
+    pub fn register_view(&mut self, view: Box<dyn View + 'a>) -> usize {
         self.view2.append(&mut vec![view]);
+        self.view2.len() - 1
     }
 }
 

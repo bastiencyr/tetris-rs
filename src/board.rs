@@ -1,8 +1,7 @@
-use std::borrow::BorrowMut;
 use std::convert::TryInto;
 use std::slice::{Iter, IterMut};
 
-use itertools::{enumerate, partition};
+use itertools::enumerate;
 use sdl2::rect::Point;
 
 use crate::piece::Piece;

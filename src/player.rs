@@ -292,7 +292,7 @@ impl<'a> Player {
         }
     }
 
-    fn get_random_piece(&mut self) -> Piece {
+    fn mut_random_piece(&mut self) -> Piece {
         self.init_randomizer();
         let mut i: u32 = rand::random();
         let num_pieces = self.pieces.len() as u32;
@@ -313,7 +313,7 @@ impl<'a> Player {
     }
 
     fn re_init_piece(&mut self) {
-        let random_piece = self.get_random_piece();
+        let random_piece = self.mut_random_piece();
         self.piece.set_data(*random_piece.data());
         self.piece.set_name(*random_piece.name());
     }

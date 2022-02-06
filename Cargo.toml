@@ -6,10 +6,10 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rand = "0.8.3"
-sdl2 = "0.34"
-getset = "0.1.1"
-itertools = "0.10.1"
+rand = "0.8.4"
+sdl2 = "0.35.2"
+getset = "0.1.2"
+itertools = "0.10.3"
 
 [lib]
 name = "ui"

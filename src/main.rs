@@ -1,9 +1,8 @@
 extern crate sdl2;
 
-use std::rc::Rc;
-
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
+use sdl2::pixels::Color;
 use sdl2::render::{TextureCreator, WindowCanvas};
 use sdl2::video::WindowContext;
 use sdl2::VideoSubsystem;
@@ -30,15 +29,22 @@ fn main() -> Result<(), String> {
     let sdl_context = sdl2::init()?;
     let video_subsystem = sdl_context.video()?;
 
-    let (mut canvas, creator) = init_canvas(&video_subsystem);
+    let (mut canvas, mut creator) = init_canvas(&video_subsystem);
     let main_texture = creator
         .create_texture_target(creator.default_pixel_format(), 300, 600)
         .unwrap();
-
-    let background = Rc::new(Background::new(&mut canvas, &creator));
+    let background = Background::new(&mut canvas, &creator);
     let mut controller = Controller::new();
     controller.set_model(TetrisModel::new());
-    controller.register_view(Box::new(TetrisView::new(canvas, main_texture, background)));
+
+    let view = TetrisView::builder(canvas, main_texture, background)
+        .color_piece(Color::RGBA(180, 73, 63, 255))
+        .color_line(Color::RGBA(70, 50, 50, 255))
+        .color_back2(Color::RGBA(10, 20, 30, 255))
+        .color_ghost(Color::RGBA(60, 46, 90, 80))
+        .build();
+
+    let id_view = controller.register_view(Box::new(view));
 
     let timer = sdl_context.timer()?;
     let mut event_pump = sdl_context.event_pump()?;
